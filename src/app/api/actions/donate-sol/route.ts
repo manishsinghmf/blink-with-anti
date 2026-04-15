@@ -21,7 +21,7 @@ const blockchain = BLOCKCHAIN_IDS.devnet;
 const connection = new Connection("https://api.devnet.solana.com");
 
 // Set the donation wallet address (Dummy valid key for testing)
-const donationWallet = "8mXWeD9eLz1P92vYwHrcQyLg3m8vU7xR4A9iW4kZp2qV"; 
+const donationWallet = "HS7M3zgnFVucMMM5k1a2sPBPjRndfYNW7Ep6eMueCvX4";
 
 const headers = {
   ...ACTIONS_CORS_HEADERS,
@@ -88,9 +88,9 @@ export const POST = async (req: Request) => {
     const request: ActionPostRequest = await req.json();
     let payer: PublicKey;
     try {
-        payer = new PublicKey(request.account);
+      payer = new PublicKey(request.account);
     } catch {
-        return new Response(JSON.stringify({ error: "Invalid account provided" }), { status: 400, headers });
+      return new Response(JSON.stringify({ error: "Invalid account provided" }), { status: 400, headers });
     }
 
     const receiver = new PublicKey(donationWallet);
