@@ -1,0 +1,138 @@
+import {
+  ActionGetResponse,
+  ActionPostRequest,
+  ActionPostResponse,
+  ACTIONS_CORS_HEADERS,
+  BLOCKCHAIN_IDS,
+} from "@solana/actions";
+import {
+  Connection,
+  PublicKey,
+  LAMPORTS_PER_SOL,
+  SystemProgram,
+  TransactionMessage,
+  VersionedTransaction,
+} from "@solana/web3.js";
+
+// CAIP-2 format for Solana Devnet
+const blockchain = BLOCKCHAIN_IDS.devnet;
+
+// Create a connection to the Solana devnet
+const connection = new Connection("https://api.devnet.solana.com");
+
+// Set the donation wallet address (Dummy valid key for testing)
+const donationWallet = "8mXWeD9eLz1P92vYwHrcQyLg3m8vU7xR4A9iW4kZp2qV"; 
+
+const headers = {
+  ...ACTIONS_CORS_HEADERS,
+  "x-blockchain-ids": blockchain,
+  "x-action-version": "2.4",
+};
+
+export const OPTIONS = async () => {
+  return new Response(null, { headers });
+};
+
+export const GET = async (req: Request) => {
+  const response: ActionGetResponse = {
+    type: "action",
+    icon: `${new URL("/donate-sol.jpg", req.url).toString()}`,
+    label: "Donate",
+    title: "Donate SOL",
+    description: "This Blink demonstrates how to donate SOL on the Solana blockchain. Drop some devnet SOL and watch the transaction fly!",
+    links: {
+      actions: [
+        {
+          type: "transaction",
+          label: "0.01 SOL",
+          href: "/api/actions/donate-sol?amount=0.01",
+        },
+        {
+          type: "transaction",
+          label: "0.05 SOL",
+          href: "/api/actions/donate-sol?amount=0.05",
+        },
+        {
+          type: "transaction",
+          label: "0.1 SOL",
+          href: "/api/actions/donate-sol?amount=0.1",
+        },
+        {
+          type: "transaction",
+          href: "/api/actions/donate-sol?amount={amount}",
+          label: "Donate",
+          parameters: [
+            {
+              name: "amount",
+              label: "Enter a custom SOL amount",
+              type: "number",
+            },
+          ],
+        },
+      ],
+    },
+  };
+
+  return new Response(JSON.stringify(response), { status: 200, headers });
+};
+
+export const POST = async (req: Request) => {
+  try {
+    const url = new URL(req.url);
+    const amount = Number(url.searchParams.get("amount"));
+
+    if (amount <= 0 || isNaN(amount)) {
+      return new Response(JSON.stringify({ error: "Invalid amount" }), { status: 400, headers });
+    }
+
+    const request: ActionPostRequest = await req.json();
+    let payer: PublicKey;
+    try {
+        payer = new PublicKey(request.account);
+    } catch {
+        return new Response(JSON.stringify({ error: "Invalid account provided" }), { status: 400, headers });
+    }
+
+    const receiver = new PublicKey(donationWallet);
+
+    const transaction = await prepareTransaction(
+      connection,
+      payer,
+      receiver,
+      amount
+    );
+
+    const response: ActionPostResponse = {
+      type: "transaction",
+      transaction: Buffer.from(transaction.serialize()).toString("base64"),
+    };
+
+    return Response.json(response, { status: 200, headers });
+  } catch (error) {
+    console.error("Error processing request:", error);
+    return new Response(JSON.stringify({ error: "Internal server error" }), { status: 500, headers });
+  }
+};
+
+const prepareTransaction = async (
+  connection: Connection,
+  payer: PublicKey,
+  receiver: PublicKey,
+  amount: number
+) => {
+  const instruction = SystemProgram.transfer({
+    fromPubkey: payer,
+    toPubkey: new PublicKey(receiver),
+    lamports: Math.round(amount * LAMPORTS_PER_SOL),
+  });
+
+  const { blockhash } = await connection.getLatestBlockhash();
+
+  const message = new TransactionMessage({
+    payerKey: payer,
+    recentBlockhash: blockhash,
+    instructions: [instruction],
+  }).compileToV0Message();
+
+  return new VersionedTransaction(message);
+};
