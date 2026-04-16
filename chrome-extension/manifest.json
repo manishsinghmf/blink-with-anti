@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Solana Blink Unfurler",
+  "version": "1.0.0",
+  "description": "Unfurls Solana Blink URLs on X.com/Twitter into interactive donate UIs. Powered by Dialect.",
+  "icons": {
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://twitter.com/*",
+        "https://x.com/*",
+        "https://pro.x.com/*"
+      ],
+      "js": ["contentScript.js"],
+      "css": ["style.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": [],
+  "host_permissions": [
+    "https://*.vercel.app/*",
+    "https://api.devnet.solana.com/*",
+    "https://api.dial.to/*"
+  ]
+}

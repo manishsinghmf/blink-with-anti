@@ -39,13 +39,13 @@ export const GET = async (req: Request) => {
     icon: `${new URL("/donate-sol.jpg", req.url).toString()}`,
     label: "Donate",
     title: "Donate SOL",
-    description: "This Blink demonstrates how to donate SOL on the Solana blockchain. Drop some devnet SOL and watch the transaction fly!",
+    description: "Support this project with a quick SOL donation. One click, instant transfer on Solana. Every bit helps! 🚀",
     links: {
       actions: [
         {
           type: "transaction",
-          label: "0.01 SOL",
-          href: "/api/actions/donate-sol?amount=0.01",
+          label: "0.1 SOL ⭐",
+          href: "/api/actions/donate-sol?amount=0.1",
         },
         {
           type: "transaction",
@@ -54,8 +54,8 @@ export const GET = async (req: Request) => {
         },
         {
           type: "transaction",
-          label: "0.1 SOL",
-          href: "/api/actions/donate-sol?amount=0.1",
+          label: "0.01 SOL",
+          href: "/api/actions/donate-sol?amount=0.01",
         },
         {
           type: "transaction",
