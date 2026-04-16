@@ -18,10 +18,7 @@ import {
 import "@dialectlabs/blinks/index.css";
 import "@solana/wallet-adapter-react-ui/styles.css";
 
-const ACTION_URL =
-  typeof window !== "undefined"
-    ? `${window.location.origin}/api/actions/donate-sol`
-    : "http://localhost:3000/api/actions/donate-sol";
+const ACTION_URL = "https://blink-with-anti.vercel.app/api/actions/donate-sol";
 const RPC_URL = "https://api.devnet.solana.com";
 
 function BlinkCard() {
