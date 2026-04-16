@@ -14,6 +14,7 @@ import {
   type ActionAdapter,
   type SignMessageData,
   BlockchainIds,
+  createSignMessageText,
 } from "@dialectlabs/blinks";
 import "@dialectlabs/blinks/index.css";
 import { Connection, VersionedTransaction } from "@solana/web3.js";
@@ -108,10 +109,9 @@ class SolanaBlinkAdapter implements ActionAdapter {
       await provider.connect();
     }
 
-    const message =
-      typeof data === "string"
-        ? new TextEncoder().encode(data)
-        : new TextEncoder().encode(data.message);
+    const messageText =
+      typeof data === "string" ? data : createSignMessageText(data);
+    const message = new TextEncoder().encode(messageText);
 
     const { signature } = await provider.signMessage(message);
     return { signature: Buffer.from(signature).toString("base64") };

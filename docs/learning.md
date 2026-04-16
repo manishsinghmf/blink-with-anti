@@ -392,5 +392,18 @@ Build the extension.
 - The extension listens on `x.com/*`, `twitter.com/*`, and `pro.x.com/*`
 - It uses **Solana devnet** — make sure your Phantom wallet is set to devnet for testing
 
+## 14. Build Error Fix: SignMessageData & tsconfig
+
+**What happened:**
+Running `npm run build` (Next.js production build) failed because:
+1. Next.js was type-checking the `chrome-extension/` directory, finding a TS error in `contentScript.ts`
+2. `SignMessageData` type has `domain`, `address`, `statement`, `nonce`, `issuedAt` — NOT a `message` property
+
+**What I fixed:**
+1. Changed `data.message` to use `createSignMessageText(data)` — the correct Dialect utility function that serializes `SignMessageData` into a human-readable string
+2. Added `"chrome-extension"` to the `exclude` array in the root `tsconfig.json` so Next.js doesn't try to type-check the extension code (it has its own `tsconfig.json`)
+
+**Result:** Both `npm run build` (Next.js) and `npm run build` (chrome-extension) pass successfully.
+
 ## Summary
 Through this process, we built a complete Solana Blinks project: a provider API deployed on Vercel, a standalone donate landing page, and a custom Chrome extension that unfurls blink URLs on X.com. The extension uses Dialect's `setupTwitterObserver()` with a custom adapter that bridges to Phantom wallet for transaction signing.
