@@ -23,11 +23,11 @@ const ACTION_URL =
     ? `${window.location.origin}/api/actions/donate-sol`
     : "http://localhost:3000/api/actions/donate-sol";
 const RPC_URL = "https://api.devnet.solana.com";
-// For X unfurling via Chrome extension, use the direct action endpoint
+// Smart URL: serves HTML to browsers, JSON to extensions/bots
 const SHARE_URL =
   typeof window !== "undefined"
-    ? `${window.location.origin}/api/donate`
-    : "https://blink-with-anti.vercel.app/api/donate";
+    ? `${window.location.origin}/donate-sol`
+    : "https://blink-with-anti.vercel.app/donate-sol";
 
 function BlinkPreview() {
   const { adapter } = useBlinkSolanaWalletAdapter(RPC_URL);

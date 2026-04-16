@@ -119,7 +119,6 @@ class SolanaBlinkAdapter implements ActionAdapter {
 }
 
 // ── Initialize ──────────────────────────────────────────────
-// Wait a moment for the page to settle, then start observing
 function init() {
   console.log(
     "[Blink Unfurler] 🚀 Starting Twitter observer for Solana Blinks..."
