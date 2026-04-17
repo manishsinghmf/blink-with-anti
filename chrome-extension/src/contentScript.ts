@@ -118,6 +118,64 @@ class SolanaBlinkAdapter implements ActionAdapter {
   }
 }
 
+// ── Extract Solana Action URL from meta tags ──────────────
+async function extractActionUrlFromPage(pageUrl: string): Promise<string | null> {
+  try {
+    const response = await fetch(pageUrl);
+    const html = await response.text();
+
+    // Extract solana:action:apiUrl from meta tag
+    const match = html.match(/<meta\s+name=["']solana:action:apiUrl["']\s+content=["']([^"']+)["']/);
+    if (match && match[1]) {
+      console.log("[Blink Unfurler] Found solana:action:apiUrl:", match[1]);
+      return match[1];
+    }
+  } catch (error) {
+    console.error("[Blink Unfurler] Error fetching page for meta tags:", error);
+  }
+  return null;
+}
+
+// ── Enhanced URL detection for /donate-sol ──────────────
+function setupEnhancedObserver(adapter: ActionAdapter) {
+  console.log("[Blink Unfurler] Setting up enhanced observer for /donate-sol URLs...");
+
+  const observer = new MutationObserver(async (mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type === "childList") {
+        const addedNodes = Array.from(mutation.addedNodes) as Element[];
+
+        for (const node of addedNodes) {
+          // Find all links in the added content
+          const links = node.querySelectorAll?.("a[href]") || [];
+
+          for (const link of links) {
+            const href = link.getAttribute("href");
+
+            // Check if this is a /donate-sol link
+            if (href && href.includes("/donate-sol")) {
+              console.log("[Blink Unfurler] Found /donate-sol link:", href);
+
+              // Try to extract the action URL from the page's meta tag
+              const actionUrl = await extractActionUrlFromPage(href);
+              if (actionUrl) {
+                console.log("[Blink Unfurler] Will use action URL:", actionUrl);
+                // The setupTwitterObserver will handle standard endpoints
+                // This just ensures we're aware of the meta tag relationship
+              }
+            }
+          }
+        }
+      }
+    }
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
+}
+
 // ── Initialize ──────────────────────────────────────────────
 function init() {
   console.log(
@@ -125,7 +183,12 @@ function init() {
   );
 
   const adapter = new SolanaBlinkAdapter();
+
+  // Use Dialect's setupTwitterObserver for standard action endpoints
   setupTwitterObserver(adapter);
+
+  // Also set up enhanced observer for /donate-sol URLs with meta tags
+  setupEnhancedObserver(adapter);
 
   console.log(
     "[Blink Unfurler] ✅ Twitter observer active. Blink URLs will be unfurled."
