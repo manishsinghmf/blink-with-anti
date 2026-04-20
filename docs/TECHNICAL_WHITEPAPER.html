@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solana Blinks - Technical Whitepaper</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+        }
+        h1 { font-size: 2.5em; border-bottom: 3px solid #14f195; padding-bottom: 10px; margin-top: 40px; }
+        h2 { font-size: 2em; color: #14f195; margin-top: 35px; }
+        h3 { font-size: 1.5em; margin-top: 25px; }
+        h4, h5, h6 { margin-top: 20px; }
+        code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: 'Monaco', 'Menlo', monospace; }
+        pre { background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #f5f5f5; font-weight: bold; }
+        blockquote { border-left: 4px solid #14f195; padding-left: 15px; margin-left: 0; color: #666; }
+        ul, ol { margin: 15px 0; }
+        li { margin: 8px 0; }
+        a { color: #14f195; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        @media print {
+            body { max-width: 100%; margin: 0; padding: 10mm; }
+            h1 { page-break-after: avoid; }
+            h2 { page-break-after: avoid; }
+            pre { page-break-inside: avoid; }
+            table { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+<h1>Solana Blinks: Technical White Paper</h1>
+<p><strong>Version:</strong> 1.0<br />
+<strong>Date:</strong> April 20, 2026<br />
+<strong>Project:</strong> Blink Anti-Gravity (Reference Implementation)<br />
+<strong>Status:</strong> Production-Ready</p>
+<hr />
+<h2>Executive Summary</h2>
+<blockquote>
+<p><strong>For Business:</strong> Blinks remove the friction from blockchain transactions on social media. Today, converting a social media post into a funded blockchain action requires users to copy wallet addresses, switch applications, paste information, and verify transactions across multiple interfaces. Blinks enable direct transaction execution without leaving the user's social feed, dramatically improving adoption and engagement.</p>
+</blockquote>
+<p>Solana Blinks are trustless, shareable blockchain actions embedded directly into social media interfaces and compatible clients. This white paper documents the architecture, implementation, security model, and use cases for the Blink standard, using the "Donate SOL" reference implementation as a practical case study.</p>
+<p><strong>Key Innovations:</strong>
+- <strong>Frictionless</strong>: Execute Solana transactions without wallet-switching or manual verification
+- <strong>Discoverable</strong>: Works natively on X.com and across blockchain wallets with metadata-driven unfurling
+- <strong>Secure</strong>: Cryptographically verified transactions with optional transaction previews
+- <strong>Standards-Based</strong>: Built on Dialect's <code>@solana/actions</code> specification for interoperability
+- <strong>Portable</strong>: Operate across platforms via direct URLs or embedded Blink clients</p>
+<p><strong>Document Audience</strong>: Both technical practitioners implementing Blinks and business stakeholders evaluating adoption.</p>
+<hr />
+<h2>1. Problem Statement</h2>
+<h3>1.1 The Blockchain Transaction Friction Problem</h3>
+<p>The blockchain ecosystem boasts billions in daily transaction volume, yet adoption remains constrained in mainstream applications. A critical pain point: <strong>the conversion gap between social discovery and transaction execution</strong>.</p>
+<h4>Current Workflow (Pre-Blinks)</h4>
+<div class="codehilite"><pre><span></span><code><span class="nx">User</span><span class="w"> </span><span class="nx">sees</span><span class="w"> </span><span class="nx">post</span><span class="w"> </span><span class="nx">about</span><span class="w"> </span><span class="nx">fundraiser</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="nx">Copies</span><span class="w"> </span><span class="nx">wallet</span><span class="w"> </span><span class="nx">address</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="nx">Switches</span><span class="w"> </span><span class="nx">to</span><span class="w"> </span><span class="nx">wallet</span><span class="w"> </span><span class="nx">app</span><span class="w"> </span>
+<span class="err">→</span><span class="w"> </span><span class="nx">Pastes</span><span class="w"> </span><span class="nx">address</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="nx">Enters</span><span class="w"> </span><span class="nx">amount</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="nx">Reviews</span><span class="w"> </span><span class="nx">transaction</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="nx">Approves</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="nx">Waits</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="nx">confirmation</span>
+<span class="err">→</span><span class="w"> </span><span class="nx">Returns</span><span class="w"> </span><span class="nx">to</span><span class="w"> </span><span class="nx">original</span><span class="w"> </span><span class="nx">app</span>
+</code></pre></div>
+
+<p><strong>Friction Points:</strong>
+1. <strong>Context Switching</strong>: Minimum 2-3 app switches (browser → wallet → confirmation → browser)
+2. <strong>Manual Verification</strong>: Users manually verify copied addresses (phishing risk)
+3. <strong>Copy-Paste Errors</strong>: Typos in addresses lose funds permanently
+4. <strong>Knowledge Barrier</strong>: Required understanding of wallet structure, addresses, and transaction mechanics
+5. <strong>Time Commitment</strong>: 2-5 minutes per transaction vs. milliseconds for traditional payments
+6. <strong>Discovery Friction</strong>: Blockchain actions invisible until user manually shares payment details</p>
+<h4>Real-World Impact</h4>
+<ul>
+<li><strong>Creator Monetization</strong>: Streamers can't monetize directly during broadcast</li>
+<li><strong>Charitable Giving</strong>: Donation friction suppresses participation (mobile users especially impacted)</li>
+<li><strong>Governance</strong>: Token voting requires off-platform transaction construction</li>
+<li><strong>Commerce</strong>: Markets cannot embed checkout flows in social platforms</li>
+<li><strong>Event Ticketing</strong>: Ticket distribution requires manual blockchain interactions</li>
+</ul>
+<h3>1.2 Why Traditional Solutions Don't Solve This</h3>
+<table>
+<thead>
+<tr>
+<th>Solution</th>
+<th>Limitation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Custodial Wallets</strong></td>
+<td>Centralized risk, asset seizure potential, regulatory uncertainty</td>
+</tr>
+<tr>
+<td><strong>QR Codes</strong></td>
+<td>Requires wallet app install, still requires manual amount entry</td>
+</tr>
+<tr>
+<td><strong>Email/SMS Payment Links</strong></td>
+<td>Custody model introduces counterparty risk</td>
+</tr>
+<tr>
+<td><strong>API Integrations</strong></td>
+<td>Requires application to hold user keys (high security risk)</td>
+</tr>
+<tr>
+<td><strong>Mobile Apps</strong></td>
+<td>Ecosystem fragmentation, discoverability limited</td>
+</tr>
+</tbody>
+</table>
+<h3>1.3 The Adoption Equation</h3>
+<p>Blockchain platforms achieve mainstream adoption when:</p>
+<p>$$\text{Adoption Rate} \propto \frac{\text{Transaction Utility}}{\text{User Friction}}$$</p>
+<p><strong>Current State:</strong> High utility but <strong>extremely high friction</strong> prevents mainstream adoption.</p>
+<p><strong>Blinks Goal:</strong> Maintain utility while reducing friction to near-zero.</p>
+<hr />
+<h2>2. Solution: Blinks Explained</h2>
+<h3>2.1 What Are Blinks?</h3>
+<p>Blinks are <strong>standardized, shareable, on-chain actions that can be triggered with a single click from social media feeds</strong>. They are:</p>
+<ul>
+<li><strong>Native to protocol</strong>: Operate through standardized endpoints and metadata</li>
+<li><strong>Client-agnostic</strong>: Work in X.com, Phantom, Backpack, and any Blink-compatible application</li>
+<li><strong>Non-custodial</strong>: User controls private keys throughout; no intermediary holds funds</li>
+<li><strong>Composable</strong>: Blink endpoints can chain transactions or propose complex interactions</li>
+<li><strong>Discoverable</strong>: Metadata-driven with rich UI support for previews and confirmations</li>
+</ul>
+<h3>2.2 The Blink Architecture (Simplified)</h3>
+<div class="codehilite"><pre><span></span><code>┌─────────────────┐         ┌──────────────────┐
+│   Social Media  │         │  Blockchain      │
+│   (X.com)       │         │  (Solana Devnet) │
+└────────┬────────┘         └─────────┬────────┘
+         │                            ▲
+         │ User shares Blink URL      │
+         │                            │
+         ▼                            │
+    ┌────────────────────────────┐    │
+    │ Blink Client               │    │
+    │ - Fetches action metadata  │    │
+    │ - Renders UI (buttons)     │    │
+    │ - Constructs transaction   │────┘
+    └────────┬───────────────────┘
+             │
+             │ Requests action endpoint
+             │
+             ▼
+    ┌────────────────────────────┐
+    │ Blink Provider             │
+    │ (Your API)                 │
+    │ - GET: Metadata            │
+    │ - POST: Build transaction  │
+    └────────────────────────────┘
+</code></pre></div>
+
+<h3>2.3 How Blinks Solve the Problem</h3>
+<table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Blink Solution</th>
+<th>Outcome</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Context switching</td>
+<td>Embedded in social feed</td>
+<td>0 app switches</td>
+</tr>
+<tr>
+<td>Manual verification</td>
+<td>Cryptographic signatures</td>
+<td>No phishing</td>
+</tr>
+<tr>
+<td>Copy-paste errors</td>
+<td>Automatic address handling</td>
+<td>100% accuracy</td>
+</tr>
+<tr>
+<td>Knowledge barrier</td>
+<td>One-click UI</td>
+<td>Non-technical accessible</td>
+</tr>
+<tr>
+<td>Time commitment</td>
+<td>Single click submission</td>
+<td>&lt;1 second</td>
+</tr>
+<tr>
+<td>Action discovery</td>
+<td>Metadata-driven unfurling</td>
+<td>Passive discovery</td>
+</tr>
+</tbody>
+</table>
+<h3>2.4 Integration Approaches</h3>
+<h4><strong>Approach 1: Native X.com Support</strong> ✨</h4>
+<p>When X.com supports Blinks natively:</p>
+<div class="codehilite"><pre><span></span><code>User shares URL → X crawls OG meta tags → X recognizes Solana Action URL 
+→ X injects interactive Blink UI directly in feed → User clicks button 
+→ Transaction executes without leaving feed
+</code></pre></div>
+
+<p><strong>Status</strong>: X.com recognizes action URLs; full UI support in development.</p>
+<h4><strong>Approach 2: Chrome Extension (Current Production)</strong></h4>
+<p>For broader client support:</p>
+<div class="codehilite"><pre><span></span><code>User shares URL → Chrome extension detects link → Extension fetches action metadata 
+→ Extension injects Blink UI component → User clicks button 
+→ Transaction executes with wallet confirmation
+</code></pre></div>
+
+<p><strong>Status</strong>: ✅ Active and tested in production.</p>
+<h4><strong>Approach 3: Embedded Blink Client</strong></h4>
+<p>Direct integration:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">URL</span><span class="w"> </span><span class="n">with</span><span class="w"> </span><span class="err">?</span><span class="n">action</span><span class="o">=</span><span class="w"> </span><span class="n">parameter</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">Blink</span><span class="w"> </span><span class="n">client</span><span class="w"> </span><span class="n">page</span><span class="w"> </span><span class="n">loads</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">Client</span><span class="w"> </span><span class="n">fetches</span><span class="w"> </span><span class="n">action</span><span class="w"> </span><span class="n">metadata</span><span class="w"> </span>
+<span class="err">→</span><span class="w"> </span><span class="n">Renders</span><span class="w"> </span><span class="n">full</span><span class="w"> </span><span class="n">Blink</span><span class="w"> </span><span class="n">UI</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">User</span><span class="w"> </span><span class="n">interacts</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">Transaction</span><span class="w"> </span><span class="n">executes</span>
+</code></pre></div>
+
+<p><strong>Status</strong>: ✅ Implemented in this reference project at <code>/blink</code> endpoint.</p>
+<hr />
+<h2>3. Architecture &amp; Technical Design</h2>
+<h3>3.1 System Components</h3>
+<h4><strong>Component 1: Blink Provider</strong></h4>
+<ul>
+<li>Your API/application that exposes Solana action endpoints</li>
+<li>Responsible for: transaction construction, metadata generation, validation</li>
+<li>Lives at: <code>/api/actions/[action-name]</code></li>
+<li>Returns: Standardized JSON following <code>@solana/actions</code> specification</li>
+</ul>
+<h4><strong>Component 2: Blink Client</strong></h4>
+<ul>
+<li>Consumer application (X.com, Phantom, Backpack, or dedicated page)</li>
+<li>Fetches metadata from Blink Provider</li>
+<li>Renders interactive UI (buttons, inputs, previews)</li>
+<li>Constructs and submits transactions to user's wallet</li>
+</ul>
+<h4><strong>Component 3: Dialect SDK (<code>@solana/actions</code>)</strong></h4>
+<ul>
+<li>Standardizes action specification and routing</li>
+<li>Provides TypeScript types for request/response formats</li>
+<li>Handles CORS headers and browser preflight</li>
+<li>Reference: Dialect Labs maintains this standard</li>
+</ul>
+<h4><strong>Component 4: User's Wallet</strong></h4>
+<ul>
+<li>Signs transactions (Phantom, Backpack, Ledger, etc.)</li>
+<li>Controls private keys</li>
+<li>Submits signed transaction to Solana network</li>
+</ul>
+<h3>3.2 Data Flow Diagram</h3>
+<div class="codehilite"><pre><span></span><code><span class="n">DISCOVERY</span><span class="w"> </span><span class="n">PHASE</span><span class="p">:</span>
+<span class="err">─────────────────</span>
+<span class="mf">1.</span><span class="w"> </span><span class="n">User</span><span class="w"> </span><span class="n">sees</span><span class="w"> </span><span class="n">post</span><span class="w"> </span><span class="n">with</span><span class="w"> </span><span class="n">Blink</span><span class="w"> </span><span class="n">URL</span>
+<span class="mf">2.</span><span class="w"> </span><span class="n">Blink</span><span class="w"> </span><span class="n">Client</span><span class="w"> </span><span class="p">(</span><span class="n">extension</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="n">app</span><span class="p">)</span><span class="w"> </span><span class="n">detects</span><span class="w"> </span><span class="n">URL</span>
+<span class="mf">3.</span><span class="w"> </span><span class="n">Client</span><span class="w"> </span><span class="n">sends</span><span class="p">:</span><span class="w"> </span><span class="n">OPTIONS</span><span class="w"> </span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">actions</span><span class="o">/</span><span class="n">donate</span><span class="o">-</span><span class="n">sol</span><span class="w"> </span><span class="p">(</span><span class="n">CORS</span><span class="w"> </span><span class="n">preflight</span><span class="p">)</span>
+<span class="mf">4.</span><span class="w"> </span><span class="n">Provider</span><span class="w"> </span><span class="n">responds</span><span class="w"> </span><span class="n">with</span><span class="w"> </span><span class="n">CORS</span><span class="w"> </span><span class="n">headers</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">blockchain</span><span class="w"> </span><span class="n">info</span>
+
+<span class="n">METADATA</span><span class="w"> </span><span class="n">PHASE</span><span class="p">:</span>
+<span class="err">───────────────</span>
+<span class="mf">5.</span><span class="w"> </span><span class="n">Client</span><span class="w"> </span><span class="n">sends</span><span class="p">:</span><span class="w"> </span><span class="n">GET</span><span class="w"> </span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">actions</span><span class="o">/</span><span class="n">donate</span><span class="o">-</span><span class="n">sol</span>
+<span class="mf">6.</span><span class="w"> </span><span class="n">Provider</span><span class="w"> </span><span class="n">responds</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">     </span><span class="n">title</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Donate SOL&quot;</span>
+<span class="w">     </span><span class="n">icon</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://...&quot;</span>
+<span class="w">     </span><span class="n">actions</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">       </span><span class="p">{</span><span class="w"> </span><span class="n">label</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Donate 0.1 SOL&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">postUrl</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">       </span><span class="p">{</span><span class="w"> </span><span class="n">label</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Custom amount&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;input&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">     </span><span class="p">]</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="mf">7.</span><span class="w"> </span><span class="n">Client</span><span class="w"> </span><span class="n">renders</span><span class="w"> </span><span class="n">UI</span><span class="w"> </span><span class="n">with</span><span class="w"> </span><span class="n">buttons</span>
+
+<span class="n">USER</span><span class="w"> </span><span class="n">INTERACTION</span><span class="w"> </span><span class="n">PHASE</span><span class="p">:</span>
+<span class="err">──────────────────────</span>
+<span class="mf">8.</span><span class="w"> </span><span class="n">User</span><span class="w"> </span><span class="n">clicks</span><span class="w"> </span><span class="n">button</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="n">enters</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="n">amount</span>
+<span class="mf">9.</span><span class="w"> </span><span class="n">Client</span><span class="w"> </span><span class="n">sends</span><span class="p">:</span><span class="w"> </span><span class="n">POST</span><span class="w"> </span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">actions</span><span class="o">/</span><span class="n">donate</span><span class="o">-</span><span class="n">sol</span><span class="err">?</span><span class="n">amount</span><span class="o">=</span><span class="mf">0.50</span>
+<span class="mf">10.</span><span class="w"> </span><span class="n">Provider</span><span class="w"> </span><span class="n">constructs</span><span class="p">:</span>
+<span class="w">    </span><span class="o">-</span><span class="w"> </span><span class="n">Creates</span><span class="w"> </span><span class="n">transfer</span><span class="w"> </span><span class="n">instruction</span>
+<span class="w">    </span><span class="o">-</span><span class="w"> </span><span class="n">Builds</span><span class="w"> </span><span class="n">versioned</span><span class="w"> </span><span class="n">transaction</span>
+<span class="w">    </span><span class="o">-</span><span class="w"> </span><span class="n">Encodes</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">base64</span>
+<span class="w">    </span><span class="o">-</span><span class="w"> </span><span class="n">Returns</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">client</span>
+
+<span class="n">TRANSACTION</span><span class="w"> </span><span class="n">SIGNING</span><span class="w"> </span><span class="n">PHASE</span><span class="p">:</span>
+<span class="err">──────────────────────────</span>
+<span class="mf">11.</span><span class="w"> </span><span class="n">Client</span><span class="w"> </span><span class="n">passes</span><span class="w"> </span><span class="n">transaction</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">user</span><span class="s1">&#39;s wallet</span>
+<span class="mf">12.</span><span class="w"> </span><span class="n">Wallet</span><span class="w"> </span><span class="n">displays</span><span class="w"> </span><span class="n">preview</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">approval</span><span class="w"> </span><span class="n">dialog</span>
+<span class="mf">13.</span><span class="w"> </span><span class="n">User</span><span class="w"> </span><span class="n">reviews</span><span class="w"> </span><span class="ow">and</span><span class="w"> </span><span class="n">signs</span>
+<span class="mf">14.</span><span class="w"> </span><span class="n">Wallet</span><span class="w"> </span><span class="n">broadcasts</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">Solana</span><span class="w"> </span><span class="n">network</span>
+
+<span class="n">CONFIRMATION</span><span class="w"> </span><span class="n">PHASE</span><span class="p">:</span>
+<span class="err">───────────────────</span>
+<span class="mf">14.</span><span class="w"> </span><span class="n">Transaction</span><span class="w"> </span><span class="n">lands</span><span class="w"> </span><span class="n">on</span><span class="o">-</span><span class="n">chain</span><span class="w"> </span><span class="n">with</span><span class="w"> </span><span class="n">user</span><span class="s1">&#39;s signature</span>
+<span class="mf">15.</span><span class="w"> </span><span class="n">Client</span><span class="w"> </span><span class="n">displays</span><span class="w"> </span><span class="n">success</span><span class="w"> </span><span class="n">confirmation</span>
+<span class="mf">16.</span><span class="w"> </span><span class="n">Provider</span><span class="w"> </span><span class="n">logs</span><span class="w"> </span><span class="n">transaction</span><span class="w"> </span><span class="p">(</span><span class="n">optional</span><span class="p">)</span>
+</code></pre></div>
+
+<h3>3.3 Key Design Patterns</h3>
+<h4><strong>Pattern 1: Action Discovery (GET)</strong></h4>
+<p>Clients fetch metadata to determine available actions and UI elements.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">GET</span><span class="w"> </span><span class="nx">https</span><span class="o">:</span><span class="c1">//blink-provider.com/api/actions/donate-sol</span>
+
+<span class="nx">Response</span><span class="o">:</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="nx">type</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;action&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;https://...&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Donate SOL&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">description</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Support our mission&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">links</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">actions</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Donate 0.1 SOL&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">href</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Donate 0.5 SOL&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">href</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span><span class="w"> </span>
+<span class="w">        </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Custom&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">href</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">parameters</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">          </span><span class="p">{</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;amount&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Amount in SOL&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h4><strong>Pattern 2: CORS Preflight (OPTIONS)</strong></h4>
+<p>Browsers require preflight for cross-origin requests.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">OPTIONS</span><span class="w"> </span><span class="o">/</span><span class="nx">api</span><span class="o">/</span><span class="nx">actions</span><span class="o">/</span><span class="nx">donate</span><span class="o">-</span><span class="nx">sol</span>
+
+<span class="nx">Response</span><span class="w"> </span><span class="nx">Headers</span><span class="o">:</span>
+<span class="nx">Access</span><span class="o">-</span><span class="nx">Control</span><span class="o">-</span><span class="nx">Allow</span><span class="o">-</span><span class="nx">Origin</span><span class="o">:</span><span class="w"> </span><span class="o">*</span>
+<span class="nx">Access</span><span class="o">-</span><span class="nx">Control</span><span class="o">-</span><span class="nx">Allow</span><span class="o">-</span><span class="nx">Methods</span><span class="o">:</span><span class="w"> </span><span class="nx">GET</span><span class="p">,</span><span class="w"> </span><span class="nx">OPTIONS</span><span class="p">,</span><span class="w"> </span><span class="nx">POST</span>
+<span class="nx">x</span><span class="o">-</span><span class="nx">blockchain</span><span class="o">-</span><span class="nx">ids</span><span class="o">:</span><span class="w"> </span><span class="nx">solana</span><span class="o">:</span><span class="mf">5</span><span class="nx">eykt4UsFv2P6ysS48Dxi6scope49oFykjQxf8Jm6NE</span>
+</code></pre></div>
+
+<h4><strong>Pattern 3: Transaction Construction (POST)</strong></h4>
+<p>Client requests signed transaction.</p>
+<div class="codehilite"><pre><span></span><code><span class="nx">POST</span><span class="w"> </span><span class="o">/</span><span class="nx">api</span><span class="o">/</span><span class="nx">actions</span><span class="o">/</span><span class="nx">donate</span><span class="o">-</span><span class="nx">sol</span>
+<span class="nx">Content</span><span class="o">-</span><span class="nx">Type</span><span class="o">:</span><span class="w"> </span><span class="nx">application</span><span class="o">/</span><span class="nx">json</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="s2">&quot;account&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;user_wallet_address&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="s2">&quot;amount&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;0.50&quot;</span>
+<span class="p">}</span>
+
+<span class="nx">Response</span><span class="o">:</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="nx">transaction</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;base64_encoded_versioned_transaction&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">message</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Transaction ready for signing&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nx">error</span><span class="o">?:</span><span class="w"> </span><span class="s2">&quot;Human-readable error if failed&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3>3.4 Endpoint Relationships</h3>
+<div class="codehilite"><pre><span></span><code><span class="nv">discovery</span><span class="w"> </span><span class="nv">endpoint</span>
+│
+└─<span class="w"> </span><span class="o">/</span><span class="nv">actions</span>.<span class="nv">json</span>
+<span class="w">   </span><span class="nv">Describes</span><span class="w"> </span><span class="nv">site</span><span class="w"> </span><span class="nv">structure</span>
+<span class="w">   </span><span class="nv">Maps</span><span class="w"> </span><span class="nv">paths</span><span class="w"> </span><span class="nv">to</span><span class="w"> </span><span class="nv">action</span><span class="w"> </span><span class="nv">endpoints</span>
+
+<span class="w">   </span><span class="nv">Example</span>:<span class="w"> </span>{<span class="w"> </span><span class="nv">rules</span>:<span class="w"> </span>[{<span class="w"> </span><span class="nv">pathname</span>:<span class="w"> </span><span class="s2">&quot;/donate&quot;</span>,<span class="w"> </span><span class="nv">apiPath</span>:<span class="w"> </span><span class="s2">&quot;/api/actions/donate-sol&quot;</span><span class="w"> </span>}]<span class="w"> </span>}
+
+<span class="nv">action</span><span class="w"> </span><span class="nv">endpoints</span><span class="w"> </span><span class="ss">(</span><span class="nv">these</span><span class="w"> </span><span class="nv">are</span><span class="w"> </span><span class="nv">interconnected</span><span class="ss">)</span>
+│
+├─<span class="w"> </span><span class="nv">OPTIONS</span><span class="w"> </span><span class="o">/</span><span class="nv">api</span><span class="o">/</span><span class="nv">actions</span><span class="o">/</span><span class="nv">donate</span><span class="o">-</span><span class="nv">sol</span>
+│<span class="w">  </span><span class="nv">Purpose</span>:<span class="w"> </span><span class="nv">CORS</span><span class="w"> </span><span class="nv">preflight</span><span class="w"> </span><span class="nv">to</span><span class="w"> </span><span class="nv">enable</span><span class="w"> </span><span class="nv">browser</span><span class="w"> </span><span class="nv">access</span>
+│
+├─<span class="w"> </span><span class="nv">GET</span><span class="w"> </span><span class="o">/</span><span class="nv">api</span><span class="o">/</span><span class="nv">actions</span><span class="o">/</span><span class="nv">donate</span><span class="o">-</span><span class="nv">sol</span>
+│<span class="w">  </span><span class="nv">Purpose</span>:<span class="w"> </span><span class="nv">Fetch</span><span class="w"> </span><span class="nv">metadata</span><span class="w"> </span><span class="ss">(</span><span class="nv">title</span>,<span class="w"> </span><span class="nv">icon</span>,<span class="w"> </span><span class="nv">button</span><span class="w"> </span><span class="nv">definitions</span><span class="ss">)</span>
+│<span class="w">  </span><span class="nv">Builds</span><span class="w"> </span><span class="nv">UI</span><span class="w"> </span><span class="nv">without</span><span class="w"> </span><span class="nv">requiring</span><span class="w"> </span><span class="nv">wallet</span><span class="w"> </span><span class="nv">connection</span>
+│
+└─<span class="w"> </span><span class="nv">POST</span><span class="w"> </span><span class="o">/</span><span class="nv">api</span><span class="o">/</span><span class="nv">actions</span><span class="o">/</span><span class="nv">donate</span><span class="o">-</span><span class="nv">sol</span>
+<span class="w">   </span><span class="nv">Purpose</span>:<span class="w"> </span><span class="nv">Construct</span><span class="w"> </span><span class="nv">transaction</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="nv">signing</span>
+<span class="w">   </span><span class="nv">Requires</span>:<span class="w"> </span><span class="nv">account</span><span class="w"> </span><span class="ss">(</span><span class="nv">public</span><span class="w"> </span><span class="nv">key</span><span class="ss">)</span>,<span class="w"> </span><span class="nv">query</span><span class="w"> </span><span class="nb">params</span><span class="w"> </span><span class="ss">(</span><span class="nv">amount</span>,<span class="w"> </span><span class="nv">etc</span>.<span class="ss">)</span>
+<span class="w">   </span><span class="nv">Returns</span>:<span class="w"> </span><span class="nv">Base64</span><span class="o">-</span><span class="nv">encoded</span><span class="w"> </span><span class="nv">transaction</span><span class="w"> </span><span class="nv">ready</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="nv">wallet</span>
+</code></pre></div>
+
+<hr />
+<h2>4. API Endpoints &amp; Specifications</h2>
+<blockquote>
+<p><strong>For Developers:</strong> This section details the exact request/response formats for implementing a Blink Provider.</p>
+</blockquote>
+<h3>4.1 Discovery: <code>/actions.json</code></h3>
+<p><strong>Purpose</strong>: Define how website URLs map to Solana action endpoints.</p>
+<p><strong>Request:</strong></p>
+<div class="codehilite"><pre><span></span><code>GET https://your-blink-provider.com/actions.json
+</code></pre></div>
+
+<p><strong>Response:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;rules&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;pathname&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/donate-sol&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;apiPath&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/api/actions/donate-sol&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;pathname&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;apiPath&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/api/actions/donate-sol&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p><strong>When Used</strong>: Clients may use this to discover available actions on a domain.</p>
+<hr />
+<h3>4.2 CORS Preflight: <code>OPTIONS /api/actions/[action]</code></h3>
+<p><strong>Purpose</strong>: Enable browser-based clients to make cross-origin requests.</p>
+<p><strong>Request:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="nf">OPTIONS</span> <span class="nn">/api/actions/donate-sol</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Host</span><span class="o">:</span> <span class="l">your-blink-provider.com</span>
+<span class="na">Origin</span><span class="o">:</span> <span class="l">https://x.com</span>
+<span class="na">Access-Control-Request-Method</span><span class="o">:</span> <span class="l">POST</span>
+</code></pre></div>
+
+<p><strong>Response Headers:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">200</span> <span class="ne">OK</span>
+<span class="na">Access-Control-Allow-Origin</span><span class="o">:</span> <span class="l">*</span>
+<span class="na">Access-Control-Allow-Methods</span><span class="o">:</span> <span class="l">GET, OPTIONS, POST</span>
+<span class="na">Access-Control-Allow-Headers</span><span class="o">:</span> <span class="l">Content-Type</span>
+<span class="na">Access-Control-Max-Age</span><span class="o">:</span> <span class="l">86400</span>
+<span class="na">x-blockchain-ids</span><span class="o">:</span> <span class="l">solana:5eykt4UsFv2P6ysS48Dxi6scope49oFykjQxf8Jm6NE</span>
+</code></pre></div>
+
+<p><strong>Response Body:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;action&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;icon&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://your-domain.com/icon.png&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Donate SOL&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Support our mission&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;links&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;actions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h3>4.3 Metadata &amp; UI Definition: <code>GET /api/actions/[action]</code></h3>
+<p><strong>Purpose</strong>: Provide title, icon, description, and available interaction buttons.</p>
+<p><strong>Request:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="nf">GET</span> <span class="nn">/api/actions/donate-sol</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Host</span><span class="o">:</span> <span class="l">your-blink-provider.com</span>
+<span class="na">Accept</span><span class="o">:</span> <span class="l">application/json</span>
+</code></pre></div>
+
+<p><strong>Response:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;action&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;icon&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://your-domain.com/donate-sol.jpg&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Donate SOL to Our Mission&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Every SOL helps us build. Choose your amount or enter a custom donation.&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;label&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Donate&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;links&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;actions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;label&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Donate 0.1 SOL&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;href&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/api/actions/donate-sol?amount=0.1&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;label&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Donate 0.5 SOL&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;href&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/api/actions/donate-sol?amount=0.5&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;label&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Donate 1.0 SOL&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;href&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/api/actions/donate-sol?amount=1.0&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;label&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Custom Amount&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;href&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/api/actions/donate-sol&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;parameters&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">          </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;amount&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;label&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Amount to donate (SOL)&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;min&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0.01&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;max&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1000&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;step&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0.01&quot;</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p><strong>Field Definitions:</strong>
+- <code>type</code>: Always <code>"action"</code> for Blink endpoints
+- <code>icon</code>: URL to image (JPG, PNG)
+- <code>title</code>: Displayed heading (max 30 chars recommended)
+- <code>description</code>: Context for user (max 100 chars recommended)
+- <code>label</code>: Button text if embedded ("Donate", "Vote", etc.)
+- <code>links.actions</code>: Array of buttons/inputs user can interact with
+  - <code>href</code>: URL to POST to (includes query params for fixed amounts)
+  - <code>parameters</code>: Input fields for custom values</p>
+<hr />
+<h3>4.4 Transaction Construction: <code>POST /api/actions/[action]</code></h3>
+<p><strong>Purpose</strong>: Build a transaction ready for user's wallet to sign.</p>
+<p><strong>Request:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="nf">POST</span> <span class="nn">/api/actions/donate-sol?amount=0.5</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="na">Host</span><span class="o">:</span> <span class="l">your-blink-provider.com</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json</span>
+
+<span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;account&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;7eYdLSn7zVrHjGWBo8xPYfCvLDTxqRFfKvqLYk8RG8Vz&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;amount&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0.5&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p><strong>Request Parameters:</strong>
+- <code>account</code> (body): Public key of user initiating action (base58)
+- <code>amount</code> (query): Amount in SOL (from button or user input)</p>
+<p><strong>Response (Success):</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;transaction&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AgADCr4I/gTpb6bPGqeFRnfxZxFvHKuGcYSrUTFLDpN...&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Review your donation of 0.5 SOL&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p><strong>Response (With Validation):</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;transaction&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;AgADCr4I/gTpb6bPGqeFRnfxZxFvHKuGcYSrUTFLDpN...&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Review your donation of 0.5 SOL&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;links&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;next&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;href&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/api/actions/donate-sol/confirm?tx=AgADCr4I...&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;label&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Confirm donation&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p><strong>Response (Error):</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Amount exceeds maximum donation limit (1000 SOL)&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p><strong>Transaction Format:</strong>
+- Transactions are base64-encoded Solana versioned transactions
+- Must be signable by user's wallet immediately
+- Should use <code>getLatestBlockhash()</code> to ensure freshness
+- Should NOT be signed by provider (non-custodial principle)</p>
+<hr />
+<h3>4.5 Error Handling Convention</h3>
+<p>Consistent error responses across all endpoints:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Human-readable error description&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;details&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Technical details or error code&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;links&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;next&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;href&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/api/actions/donate-sol&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;label&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Try again or view help&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p><strong>Common Errors:</strong>
+- <code>400</code>: Invalid parameters (amount out of range, invalid account)
+- <code>429</code>: Rate limit exceeded
+- <code>500</code>: Server error (RPC connection failed, transaction construction failure)
+- <code>503</code>: Temporary unavailable (chain congestion)</p>
+<hr />
+<h2>5. Reference Implementation: The Donate SOL Blink</h2>
+<p>This project implements a complete Blink for accepting Solana donations. Here's how all pieces fit together.</p>
+<h3>5.1 Project Structure</h3>
+<div class="codehilite"><pre><span></span><code><span class="nv">src</span><span class="o">/</span>
+├──<span class="w"> </span><span class="nv">app</span><span class="o">/</span>
+│<span class="w">   </span>├──<span class="w"> </span><span class="nv">page</span>.<span class="nv">tsx</span><span class="w">                           </span>#<span class="w"> </span><span class="nv">Landing</span><span class="w"> </span><span class="nv">page</span>
+│<span class="w">   </span>├──<span class="w"> </span><span class="nv">donate</span><span class="o">-</span><span class="nv">sol</span><span class="o">/</span>
+│<span class="w">   </span>│<span class="w">   </span>├──<span class="w"> </span><span class="nv">page</span>.<span class="nv">tsx</span><span class="w">                       </span>#<span class="w"> </span><span class="nv">HTML</span><span class="w"> </span><span class="nv">page</span><span class="w"> </span><span class="nv">with</span><span class="w"> </span><span class="nv">OG</span><span class="w"> </span><span class="nv">tags</span>
+│<span class="w">   </span>│<span class="w">   </span>└──<span class="w"> </span><span class="nv">client</span>.<span class="nv">tsx</span><span class="w">                     </span>#<span class="w"> </span><span class="nv">React</span><span class="w"> </span><span class="nv">component</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="nv">UI</span>
+│<span class="w">   </span>├──<span class="w"> </span><span class="nv">blink</span><span class="o">/</span>
+│<span class="w">   </span>│<span class="w">   </span>├──<span class="w"> </span><span class="nv">page</span>.<span class="nv">tsx</span><span class="w">                       </span>#<span class="w"> </span><span class="nv">Blink</span><span class="w"> </span><span class="nv">client</span><span class="w"> </span><span class="nv">page</span>
+│<span class="w">   </span>│<span class="w">   </span>└──<span class="w"> </span><span class="nv">client</span>.<span class="nv">tsx</span><span class="w">                     </span>#<span class="w"> </span><span class="nv">Blink</span><span class="w"> </span><span class="nv">UI</span><span class="w"> </span><span class="nv">renderer</span>
+│<span class="w">   </span>├──<span class="w"> </span><span class="nv">api</span><span class="o">/</span>
+│<span class="w">   </span>│<span class="w">   </span>├──<span class="w"> </span><span class="nv">donate</span><span class="o">/</span>
+│<span class="w">   </span>│<span class="w">   </span>│<span class="w">   </span>└──<span class="w"> </span><span class="nv">route</span>.<span class="nv">ts</span><span class="w">                   </span>#<span class="w"> </span><span class="nv">Direct</span><span class="w"> </span><span class="nv">action</span><span class="w"> </span><span class="nv">endpoint</span>
+│<span class="w">   </span>│<span class="w">   </span>└──<span class="w"> </span><span class="nv">actions</span><span class="o">/</span><span class="nv">donate</span><span class="o">-</span><span class="nv">sol</span><span class="o">/</span>
+│<span class="w">   </span>│<span class="w">       </span>└──<span class="w"> </span><span class="nv">route</span>.<span class="nv">ts</span><span class="w">                   </span>#<span class="w"> </span><span class="nv">Spec</span><span class="o">-</span><span class="nv">compliant</span><span class="w"> </span><span class="nv">endpoint</span>
+│<span class="w">   </span>└──<span class="w"> </span><span class="nv">actions</span>.<span class="nv">json</span><span class="o">/</span>
+│<span class="w">       </span>└──<span class="w"> </span><span class="nv">route</span>.<span class="nv">ts</span><span class="w">                       </span>#<span class="w"> </span><span class="nv">Discovery</span><span class="w"> </span><span class="nv">endpoint</span>
+└──<span class="w"> </span>...
+</code></pre></div>
+
+<h3>5.2 Three Ways to Share Your Blink</h3>
+<h4><strong>Option A: Direct Action URL</strong> (Recommended for X.com)</h4>
+<div class="codehilite"><pre><span></span><code>https://blink-with-anti.vercel.app/api/donate
+</code></pre></div>
+
+<ul>
+<li>Returns action JSON directly</li>
+<li>Extension detects immediately</li>
+<li>No page navigation needed</li>
+<li>Instant unfurling on X.com</li>
+</ul>
+<h4><strong>Option B: Blink Client URL</strong> (Web-friendly)</h4>
+<div class="codehilite"><pre><span></span><code>https://blink-with-anti.vercel.app/blink?action=solana-action%3Ahttps%3A%2F%2Fblink-with-anti.vercel.app%2Fapi%2Fdonate
+</code></pre></div>
+
+<ul>
+<li>Full Blink UI in dedicated page</li>
+<li>Works in non-extension clients</li>
+<li>Can be opened in any browser</li>
+</ul>
+<h4><strong>Option C: HTML Page URL</strong> (Most discoverable)</h4>
+<div class="codehilite"><pre><span></span><code>https://blink-with-anti.vercel.app/donate-sol
+</code></pre></div>
+
+<ul>
+<li>SEO-friendly, shows preview card</li>
+<li>Has interactive UI when visited directly</li>
+<li>Extension can detect via OG meta tags</li>
+</ul>
+<h3>5.3 Endpoint Implementation Details</h3>
+<h4><strong>Endpoint 1: <code>/app/api/actions/donate-sol/route.ts</code></strong></h4>
+<p>Spec-compliant Solana Actions endpoint:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">ActionGetResponse</span><span class="p">,</span><span class="w"> </span><span class="nx">ActionPostRequest</span><span class="p">,</span><span class="w"> </span><span class="nx">ACTIONS_CORS_HEADERS</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">&quot;@solana/actions&quot;</span><span class="p">;</span>
+<span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">Connection</span><span class="p">,</span><span class="w"> </span><span class="nx">PublicKey</span><span class="p">,</span><span class="w"> </span><span class="nx">SystemProgram</span><span class="p">,</span><span class="w"> </span><span class="nx">Transaction</span><span class="p">,</span><span class="w"> </span><span class="nx">VersionedTransaction</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">&quot;@solana/web3.js&quot;</span><span class="p">;</span>
+
+<span class="kd">const</span><span class="w"> </span><span class="nx">DONATION_WALLET</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;4GN5mEZfbMUHWEWCzUEJ...&quot;</span><span class="p">;</span><span class="w"> </span><span class="c1">// Destination wallet</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">RPC_URL</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;https://api.devnet.solana.com&quot;</span><span class="p">;</span>
+
+<span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">OPTIONS</span><span class="p">(</span><span class="nx">request</span><span class="o">:</span><span class="w"> </span><span class="kt">Request</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Response</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">headers</span><span class="o">:</span><span class="w"> </span><span class="kt">ACTIONS_CORS_HEADERS</span><span class="w"> </span><span class="p">});</span>
+<span class="p">}</span>
+
+<span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">GET</span><span class="p">(</span><span class="nx">request</span><span class="o">:</span><span class="w"> </span><span class="kt">Request</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">Response</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">baseUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">URL</span><span class="p">(</span><span class="nx">request</span><span class="p">.</span><span class="nx">url</span><span class="p">).</span><span class="nx">origin</span><span class="p">;</span>
+
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">payload</span><span class="o">:</span><span class="w"> </span><span class="kt">ActionGetResponse</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kr">type</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;action&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="sb">`</span><span class="si">${</span><span class="nx">baseUrl</span><span class="si">}</span><span class="sb">/donate-sol.jpg`</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Donate SOL&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">description</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Support our mission with a Solana donation&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Donate&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">links</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">actions</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Donate 0.1 SOL&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">href</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;/api/actions/donate-sol?amount=0.1&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Donate 0.5 SOL&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">href</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;/api/actions/donate-sol?amount=0.5&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="w"> </span>
+<span class="w">          </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Custom Amount&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nx">href</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;/api/actions/donate-sol&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nx">parameters</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span><span class="w"> </span><span class="nx">name</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;amount&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">label</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Amount (SOL)&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">required</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="w"> </span><span class="p">}</span>
+<span class="w">          </span><span class="p">]</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">};</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Response</span><span class="p">(</span><span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">payload</span><span class="p">),</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">headers</span><span class="o">:</span><span class="w"> </span><span class="kt">ACTIONS_CORS_HEADERS</span><span class="p">,</span>
+<span class="w">    </span><span class="nx">status</span><span class="o">:</span><span class="w"> </span><span class="kt">200</span>
+<span class="w">  </span><span class="p">});</span>
+<span class="p">}</span>
+
+<span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">POST</span><span class="p">(</span><span class="nx">request</span><span class="o">:</span><span class="w"> </span><span class="kt">Request</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">Response</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">searchParams</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">URL</span><span class="p">(</span><span class="nx">request</span><span class="p">.</span><span class="nx">url</span><span class="p">);</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">amount</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">parseFloat</span><span class="p">(</span><span class="nx">searchParams</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s2">&quot;amount&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">account</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">request</span><span class="p">.</span><span class="nx">json</span><span class="p">();</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">account</span><span class="p">)</span><span class="w"> </span><span class="k">throw</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="ne">Error</span><span class="p">(</span><span class="s2">&quot;Missing account&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">amount</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mf">0.01</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nx">amount</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">1000</span><span class="p">)</span><span class="w"> </span><span class="k">throw</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="ne">Error</span><span class="p">(</span><span class="s2">&quot;Invalid amount&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">connection</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Connection</span><span class="p">(</span><span class="nx">RPC_URL</span><span class="p">);</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">userPubkey</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">PublicKey</span><span class="p">(</span><span class="nx">account</span><span class="p">);</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">destinationPubkey</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">PublicKey</span><span class="p">(</span><span class="nx">DONATION_WALLET</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Create transfer instruction</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">instruction</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">SystemProgram</span><span class="p">.</span><span class="nx">transfer</span><span class="p">({</span>
+<span class="w">      </span><span class="nx">fromPubkey</span><span class="o">:</span><span class="w"> </span><span class="kt">userPubkey</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">toPubkey</span><span class="o">:</span><span class="w"> </span><span class="kt">destinationPubkey</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">lamports</span><span class="o">:</span><span class="w"> </span><span class="kt">amount</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1</span><span class="nx">_000_000_000</span><span class="w">  </span><span class="c1">// Convert SOL to lamports</span>
+<span class="w">    </span><span class="p">});</span>
+
+<span class="w">    </span><span class="c1">// Get latest blockhash</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">blockhash</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">connection</span><span class="p">.</span><span class="nx">getLatestBlockhash</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// Create and sign transaction</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">transaction</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Transaction</span><span class="p">({</span>
+<span class="w">      </span><span class="nx">recentBlockhash</span><span class="o">:</span><span class="w"> </span><span class="kt">blockhash</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">feePayer</span><span class="o">:</span><span class="w"> </span><span class="kt">userPubkey</span>
+<span class="w">    </span><span class="p">}).</span><span class="nx">add</span><span class="p">(</span><span class="nx">instruction</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Serialize and encode</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">serialized</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">transaction</span><span class="p">.</span><span class="nx">serialize</span><span class="p">({</span><span class="w"> </span><span class="nx">requireAllSignatures</span><span class="o">:</span><span class="w"> </span><span class="kt">false</span><span class="w"> </span><span class="p">});</span>
+<span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">base64</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">serialized</span><span class="p">.</span><span class="nx">toString</span><span class="p">(</span><span class="s2">&quot;base64&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Response</span><span class="p">(</span>
+<span class="w">      </span><span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span>
+<span class="w">        </span><span class="nx">transaction</span><span class="o">:</span><span class="w"> </span><span class="kt">base64</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">message</span><span class="o">:</span><span class="w"> </span><span class="sb">`Thank you! Donating </span><span class="si">${</span><span class="nx">amount</span><span class="si">}</span><span class="sb"> SOL...`</span>
+<span class="w">      </span><span class="p">}),</span>
+<span class="w">      </span><span class="p">{</span><span class="w"> </span><span class="nx">headers</span><span class="o">:</span><span class="w"> </span><span class="kt">ACTIONS_CORS_HEADERS</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Response</span><span class="p">(</span>
+<span class="w">      </span><span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span><span class="w"> </span><span class="nx">error</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">error</span><span class="w"> </span><span class="kr">as</span><span class="w"> </span><span class="ne">Error</span><span class="p">).</span><span class="nx">message</span><span class="w"> </span><span class="p">}),</span>
+<span class="w">      </span><span class="p">{</span><span class="w"> </span><span class="nx">headers</span><span class="o">:</span><span class="w"> </span><span class="kt">ACTIONS_CORS_HEADERS</span><span class="p">,</span><span class="w"> </span><span class="nx">status</span><span class="o">:</span><span class="w"> </span><span class="kt">400</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h4><strong>Endpoint 2: <code>/app/api/donate/route.ts</code></strong></h4>
+<p>Direct action endpoint (simplified):</p>
+<div class="codehilite"><pre><span></span><code><span class="k">export</span><span class="w"> </span><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">GET</span><span class="p">(</span><span class="nx">request</span><span class="o">:</span><span class="w"> </span><span class="kt">Request</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">baseUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">URL</span><span class="p">(</span><span class="nx">request</span><span class="p">.</span><span class="nx">url</span><span class="p">).</span><span class="nx">origin</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Response</span><span class="p">(</span>
+<span class="w">    </span><span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span>
+<span class="w">      </span><span class="kr">type</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;action&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">icon</span><span class="o">:</span><span class="w"> </span><span class="sb">`</span><span class="si">${</span><span class="nx">baseUrl</span><span class="si">}</span><span class="sb">/donate-sol.jpg`</span><span class="p">,</span>
+<span class="w">      </span><span class="nx">title</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;Donate SOL&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="c1">// ... same as above</span>
+<span class="w">    </span><span class="p">}),</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nx">headers</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;Content-Type&quot;</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;application/json&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h4><strong>Endpoint 3: <code>/app/donate-sol/page.tsx</code></strong></h4>
+<p>HTML page with OG meta tags:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">import</span><span class="w"> </span><span class="nx">Head</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">&quot;next/head&quot;</span><span class="p">;</span>
+
+<span class="k">export</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">DonateSolPage</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="o">&lt;&gt;</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="nx">Head</span><span class="o">&gt;</span>
+<span class="w">        </span><span class="o">&lt;</span><span class="nx">meta</span><span class="w"> </span><span class="nx">property</span><span class="o">=</span><span class="s2">&quot;og:title&quot;</span><span class="w"> </span><span class="nx">content</span><span class="o">=</span><span class="s2">&quot;Donate SOL — Solana Blink&quot;</span><span class="w"> </span><span class="o">/&gt;</span>
+<span class="w">        </span><span class="o">&lt;</span><span class="nx">meta</span><span class="w"> </span><span class="nx">property</span><span class="o">=</span><span class="s2">&quot;og:description&quot;</span><span class="w"> </span><span class="nx">content</span><span class="o">=</span><span class="s2">&quot;Support our mission with SOL&quot;</span><span class="w"> </span><span class="o">/&gt;</span>
+<span class="w">        </span><span class="o">&lt;</span><span class="nx">meta</span><span class="w"> </span><span class="nx">property</span><span class="o">=</span><span class="s2">&quot;og:image&quot;</span><span class="w"> </span><span class="nx">content</span><span class="o">=</span><span class="s2">&quot;https://blink-with-anti.vercel.app/donate-sol.jpg&quot;</span><span class="w"> </span><span class="o">/&gt;</span>
+<span class="w">        </span><span class="o">&lt;</span><span class="nx">meta</span><span class="w"> </span><span class="nx">name</span><span class="o">=</span><span class="s2">&quot;solana:action:apiUrl&quot;</span><span class="w"> </span><span class="nx">content</span><span class="o">=</span><span class="s2">&quot;https://blink-with-anti.vercel.app/api/actions/donate-sol&quot;</span><span class="w"> </span><span class="o">/&gt;</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="err">/Head&gt;</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="nx">div</span><span class="w"> </span><span class="nx">className</span><span class="o">=</span><span class="s2">&quot;donate-container&quot;</span><span class="o">&gt;</span>
+<span class="w">        </span><span class="p">{</span><span class="cm">/* Interactive UI renders here */</span><span class="p">}</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="err">/div&gt;</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="err">/&gt;</span>
+<span class="w">  </span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3>5.4 How Requests Flow Through the System</h3>
+<div class="codehilite"><pre><span></span><code><span class="n">Chrome</span><span class="w"> </span><span class="n">Extension</span><span class="w"> </span><span class="n">detects</span><span class="p">:</span><span class="w"> </span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">blink</span><span class="o">-</span><span class="n">with</span><span class="o">-</span><span class="n">anti</span><span class="o">.</span><span class="n">vercel</span><span class="o">.</span><span class="n">app</span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">donate</span>
+<span class="w">        </span><span class="err">↓</span>
+<span class="n">OPTIONS</span><span class="w"> </span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">donate</span><span class="w"> </span><span class="p">(</span><span class="n">CORS</span><span class="w"> </span><span class="n">preflight</span><span class="p">)</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="mi">200</span><span class="w"> </span><span class="n">OK</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">ACTIONS_CORS_HEADERS</span>
+<span class="w">        </span><span class="err">↓</span>
+<span class="n">GET</span><span class="w"> </span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">donate</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">Returns</span><span class="w"> </span><span class="n">metadata</span><span class="w"> </span><span class="n">JSON</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">button</span><span class="w"> </span><span class="n">definitions</span>
+<span class="w">        </span><span class="err">↓</span>
+<span class="n">Extension</span><span class="w"> </span><span class="n">renders</span><span class="w"> </span><span class="n">UI</span><span class="w"> </span><span class="n">with</span><span class="w"> </span><span class="n">buttons</span>
+<span class="w">        </span><span class="err">↓</span>
+<span class="n">User</span><span class="w"> </span><span class="n">clicks</span><span class="w"> </span><span class="s2">&quot;Donate 0.5 SOL&quot;</span>
+<span class="w">        </span><span class="err">↓</span>
+<span class="n">POST</span><span class="w"> </span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">donate</span><span class="err">?</span><span class="n">amount</span><span class="o">=</span><span class="mf">0.5</span><span class="w"> </span><span class="n">with</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">account</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user_key&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">        </span><span class="err">↓</span>
+<span class="n">Server</span><span class="w"> </span><span class="n">constructs</span><span class="w"> </span><span class="n">transaction</span><span class="p">:</span>
+<span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">Creates</span><span class="w"> </span><span class="n">SystemProgram</span><span class="o">.</span><span class="n">transfer</span><span class="w"> </span><span class="n">instruction</span>
+<span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">Gets</span><span class="w"> </span><span class="n">latest</span><span class="w"> </span><span class="n">blockhash</span>
+<span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">Builds</span><span class="w"> </span><span class="n">versioned</span><span class="w"> </span><span class="n">transaction</span>
+<span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">Serializes</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">base64</span>
+<span class="w">        </span><span class="err">↓</span>
+<span class="n">Response</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">transaction</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;base64...&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">message</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Thank you!&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">        </span><span class="err">↓</span>
+<span class="n">Extension</span><span class="w"> </span><span class="n">passes</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">Phantom</span><span class="w"> </span><span class="n">wallet</span>
+<span class="w">        </span><span class="err">↓</span>
+<span class="n">User</span><span class="w"> </span><span class="n">signs</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">Phantom</span>
+<span class="w">        </span><span class="err">↓</span>
+<span class="n">Wallet</span><span class="w"> </span><span class="n">broadcasts</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">Solana</span><span class="w"> </span><span class="n">devnet</span>
+<span class="w">        </span><span class="err">↓</span>
+<span class="n">Transaction</span><span class="w"> </span><span class="n">lands</span><span class="w"> </span><span class="n">on</span><span class="o">-</span><span class="n">chain</span>
+<span class="w">        </span><span class="err">↓</span>
+<span class="s2">&quot;Thank you!&quot;</span><span class="w"> </span><span class="n">confirmation</span><span class="w"> </span><span class="n">displays</span>
+</code></pre></div>
+
+<hr />
+<h2>6. Security Considerations</h2>
+<blockquote>
+<p><strong>For Business:</strong> Blinks use the same cryptography as all Solana transactions. Users sign, not trust.</p>
+<p><strong>For Developers:</strong> This section covers threat model, mitigation strategies, and production-ready patterns.</p>
+</blockquote>
+<h3>6.1 Threat Model</h3>
+<h4><strong>Threat 1: Malicious Action URLs</strong></h4>
+<p><strong>Risk</strong>: Attacker posts a URL that claims to be a donation but steals funds.</p>
+<p><strong>Mitigation</strong>:
+- Users must verify destination wallet address in wallet preview
+- Wallet displays full transaction before signing
+- Cryptographic signature prevents transaction modification
+- Never display signed transactions without wallet confirmation</p>
+<h4><strong>Threat 2: Phishing via Social Engineering</strong></h4>
+<p><strong>Risk</strong>: Convincing clone blink directing to attacker wallet.</p>
+<p><strong>Mitigation</strong>:
+- Blinks are URL-based; cryptography cannot be faked
+- User education: "Verify wallet address matches official sources"
+- Brand verification in Blink metadata (could link to social proof)
+- Extension/wallet can implement domain whitelist (optional)</p>
+<h4><strong>Threat 3: Transaction Replay</strong></h4>
+<p><strong>Risk</strong>: Intercepted signed transaction replayed on different account/chain.</p>
+<p><strong>Mitigation</strong>:
+- Solana uses <code>blockhash</code> (expires after ~2 minutes)
+- Destination address hardcoded in transaction
+- Each transaction includes unique fee payer
+- Replay across chains impossible due to <code>chainId</code> in transaction header</p>
+<h4><strong>Threat 4: Provider Goes Offline/Censors Transactions</strong></h4>
+<p><strong>Risk</strong>: Provider refuses to construct transactions for certain users.</p>
+<p><strong>Mitigation</strong>:
+- Transaction construction is deterministic; users can verify provider's math
+- Alternative providers can serve same action
+- No permission/allowlist required; any provider can host action endpoint</p>
+<h4><strong>Threat 5: RPC Endpoint Manipulation</strong></h4>
+<p><strong>Risk</strong>: Malicious RPC returns fake blockhash or transaction state.</p>
+<p><strong>Mitigation</strong>:
+- Use trusted RPC endpoints (Solana Foundation, Alchemy, QuickNode)
+- User's wallet verifies transaction against their chosen network state
+- Impossible to fake valid signatures without private key</p>
+<h3>6.2 Safe Action Discovery Patterns</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1">// SAFE: Verified metadata sources</span>
+<span class="mf">1.</span><span class="w"> </span><span class="nx">Official</span><span class="w"> </span><span class="nx">domain</span><span class="w"> </span><span class="p">(</span><span class="nx">brand</span><span class="w"> </span><span class="nx">DNS</span><span class="p">)</span>
+<span class="mf">2.</span><span class="w"> </span><span class="nx">Verified</span><span class="w"> </span><span class="nx">social</span><span class="w"> </span><span class="nx">accounts</span><span class="w"> </span><span class="kd">with</span><span class="w"> </span><span class="nx">linked</span><span class="w"> </span><span class="nx">action</span><span class="w"> </span><span class="nx">URLs</span>
+<span class="mf">3.</span><span class="w"> </span><span class="nx">Community</span><span class="o">-</span><span class="nx">curated</span><span class="w"> </span><span class="nx">registries</span><span class="w"> </span><span class="kd">with</span><span class="w"> </span><span class="nx">attestations</span>
+<span class="mf">4.</span><span class="w"> </span><span class="nx">On</span><span class="o">-</span><span class="nx">chain</span><span class="w"> </span><span class="nx">program</span><span class="w"> </span><span class="nx">metadata</span><span class="w"> </span><span class="p">(</span><span class="k">for</span><span class="w"> </span><span class="nx">program</span><span class="o">-</span><span class="nx">based</span><span class="w"> </span><span class="nx">actions</span><span class="p">)</span>
+
+<span class="c1">// CAUTION: Requires user verification</span>
+<span class="mf">1.</span><span class="w"> </span><span class="nx">Email</span><span class="w"> </span><span class="nx">links</span><span class="w"> </span><span class="p">(</span><span class="nx">verify</span><span class="w"> </span><span class="nx">sender</span><span class="w"> </span><span class="nx">is</span><span class="w"> </span><span class="nx">authentic</span><span class="p">)</span>
+<span class="mf">2.</span><span class="w"> </span><span class="nx">Unknown</span><span class="w"> </span><span class="nx">social</span><span class="w"> </span><span class="nx">posts</span><span class="w"> </span><span class="p">(</span><span class="nx">user</span><span class="w"> </span><span class="nx">should</span><span class="w"> </span><span class="nx">verify</span><span class="w"> </span><span class="nx">wallet</span><span class="w"> </span><span class="nx">address</span><span class="p">)</span>
+<span class="mf">3.</span><span class="w"> </span><span class="nx">QR</span><span class="w"> </span><span class="nx">codes</span><span class="w"> </span><span class="p">(</span><span class="nx">user</span><span class="w"> </span><span class="nx">should</span><span class="w"> </span><span class="nx">verify</span><span class="w"> </span><span class="nx">domain</span><span class="p">)</span>
+
+<span class="c1">// UNSAFE: Avoid these patterns</span>
+<span class="mf">1.</span><span class="w"> </span><span class="nx">Shortened</span><span class="w"> </span><span class="nx">URLs</span><span class="w"> </span><span class="nx">without</span><span class="w"> </span><span class="nx">verification</span><span class="w"> </span><span class="p">(</span><span class="nx">bit</span><span class="p">.</span><span class="nx">ly</span><span class="p">,</span><span class="w"> </span><span class="nx">etc</span><span class="p">.)</span>
+<span class="mf">2.</span><span class="w"> </span><span class="nx">Microsites</span><span class="w"> </span><span class="nx">claiming</span><span class="w"> </span><span class="nx">to</span><span class="w"> </span><span class="nx">offer</span><span class="w"> </span><span class="nx">actions</span>
+<span class="mf">3.</span><span class="w"> </span><span class="nx">Unverified</span><span class="w"> </span><span class="nx">third</span><span class="o">-</span><span class="nx">party</span><span class="w"> </span><span class="nx">Blink</span><span class="w"> </span><span class="nx">registries</span>
+</code></pre></div>
+
+<h3>6.3 Provider Security Checklist</h3>
+<ul>
+<li>✅ <strong>HTTPS only</strong> — All endpoints use Transport Layer Security</li>
+<li>✅ <strong>No private key handling</strong> — Never touch user's private keys</li>
+<li>✅ <strong>Validate inputs</strong> — Amount ranges, account format, query parameters</li>
+<li>✅ <strong>Rate limiting</strong> — Prevent abuse (POST /api/actions/* limited to 10 req/sec per IP)</li>
+<li>✅ <strong>Fresh blockhash</strong> — Call <code>getLatestBlockhash()</code> at transaction time (not cached)</li>
+<li>✅ <strong>Correct destination</strong> — Hardcode destination wallet, never trust user input</li>
+<li>✅ <strong>Monitoring</strong> — Log: timestamps, account addresses (hashed), amounts, error rates</li>
+<li>✅ <strong>CORS headers properly configured</strong> — Only expose necessary methods</li>
+<li>✅ <strong>Error messages safe</strong> — Don't leak internal details, use generic errors</li>
+</ul>
+<h3>6.4 Wallet Security Checklist</h3>
+<blockquote>
+<p><strong>For Users:</strong>
+- ✅ Always review transaction details before signing
+- ✅ Verify destination wallet matches expected address (check first 4 and last 4 chars)
+- ✅ Check amount is what you intended
+- ✅ Familiar with wallet's UI for confirmation dialogs
+- ✅ Never authorize unlimited approvals (always check scope)
+- ✅ Use hardware wallet for large transactions</p>
+</blockquote>
+<hr />
+<h2>7. Deployment &amp; Testing</h2>
+<h3>7.1 Prerequisites</h3>
+<p><strong>Local Development:</strong>
+- Node.js 18+
+- npm or bun
+- Solana CLI (for validation)</p>
+<p><strong>Infrastructure:</strong>
+- Solana RPC endpoint (Devnet: https://api.devnet.solana.com)
+- Solana wallet with devnet SOL (for testing)
+- HTTPS domain + SSL certificate
+- Vercel account (or alternative Node.js hosting)</p>
+<h3>7.2 Environment Configuration</h3>
+<p>Create <code>.env.local</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># RPC Endpoints</span>
+<span class="nv">NEXT_PUBLIC_SOL_RPC_URL</span><span class="o">=</span>https://api.devnet.solana.com
+
+<span class="c1"># Donation wallet (your destination)</span>
+<span class="nv">NEXT_PUBLIC_DONATION_WALLET</span><span class="o">=</span>5j9...abc123
+
+<span class="c1"># For production mainnet (later):</span>
+<span class="c1"># NEXT_PUBLIC_SOL_RPC_URL=https://api.mainnet-beta.solana.com</span>
+</code></pre></div>
+
+<h3>7.3 Build &amp; Deploy Steps</h3>
+<h4><strong>Step 1: Build Next.js App</strong></h4>
+<div class="codehilite"><pre><span></span><code>npm<span class="w"> </span>install
+npm<span class="w"> </span>run<span class="w"> </span>build
+
+<span class="c1"># Check output</span>
+<span class="c1"># ✓ Build complete</span>
+<span class="c1"># ✓ Routes analyzed</span>
+<span class="c1"># ✓ API routes: /api/actions/donate-sol, /api/donate, /actions.json</span>
+</code></pre></div>
+
+<h4><strong>Step 2: Test Locally</strong></h4>
+<div class="codehilite"><pre><span></span><code>npm<span class="w"> </span>run<span class="w"> </span>dev
+<span class="c1"># Visit http://localhost:3000</span>
+
+<span class="c1"># Test endpoints:</span>
+curl<span class="w"> </span>http://localhost:3000/api/actions/donate-sol
+curl<span class="w"> </span>-X<span class="w"> </span>OPTIONS<span class="w"> </span>http://localhost:3000/api/actions/donate-sol
+curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:3000/api/actions/donate-sol<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;account&quot;:&quot;7eYdLSn7zVrHjGWBo8xPYfCvLDTxqRFfKvqLYk8RG8Vz&quot;}&#39;</span>
+</code></pre></div>
+
+<h4><strong>Step 3: Deploy to Vercel</strong></h4>
+<div class="codehilite"><pre><span></span><code>npm<span class="w"> </span>i<span class="w"> </span>-g<span class="w"> </span>vercel
+vercel<span class="w"> </span>deploy<span class="w"> </span>--prod
+
+<span class="c1"># You&#39;ll get: https://your-project.vercel.app</span>
+</code></pre></div>
+
+<h4><strong>Step 4: Verify Production</strong></h4>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Verify endpoint accessibility</span>
+curl<span class="w"> </span>https://your-project.vercel.app/api/actions/donate-sol
+
+<span class="c1"># Check CORS headers present</span>
+curl<span class="w"> </span>-I<span class="w"> </span>-X<span class="w"> </span>OPTIONS<span class="w"> </span>https://your-project.vercel.app/api/actions/donate-sol
+</code></pre></div>
+
+<h3>7.4 Chrome Extension Testing</h3>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>chrome-extension
+
+<span class="c1"># Build extension</span>
+npm<span class="w"> </span>install
+npm<span class="w"> </span>run<span class="w"> </span>build
+
+<span class="c1"># Load in Chrome:</span>
+<span class="c1"># 1. Open chrome://extensions/</span>
+<span class="c1"># 2. Enable &quot;Developer mode&quot; (top-right toggle)</span>
+<span class="c1"># 3. Click &quot;Load unpacked&quot;</span>
+<span class="c1"># 4. Select ./dist folder</span>
+<span class="c1"># 5. Extension loaded!</span>
+</code></pre></div>
+
+<p><strong>Test on X.com:</strong>
+1. Go to x.com
+2. Navigate to your project's blink URL
+3. Copy the URL from the browser
+4. Post on X.com
+5. Extension should detect and unfurl</p>
+<h3>7.5 Performance Considerations</h3>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Target</th>
+<th>Actual</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET /api/actions/donate-sol</td>
+<td>&lt;100ms</td>
+<td>~50ms</td>
+<td>Metadata fetch</td>
+</tr>
+<tr>
+<td>POST /api/actions/donate-sol</td>
+<td>&lt;500ms</td>
+<td>~200-300ms</td>
+<td>RPC blockhash fetch</td>
+</tr>
+<tr>
+<td>Transaction signing</td>
+<td>&lt;1s</td>
+<td>User-dependent</td>
+<td>Wallet confirmation</td>
+</tr>
+<tr>
+<td>Transaction finalization</td>
+<td>&lt;10s</td>
+<td>~5s devnet</td>
+<td>Network confirms</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Optimization strategies:</strong>
+- Cache OG image URLs (CDN)
+- Connection pooling to RPC (use <code>@solana/web3.js</code> built-in)
+- Implement request deduplication (same amount requests in flight)
+- Monitor RPC response times, switch on timeout</p>
+<h3>7.6 Production Checklist</h3>
+<ul>
+<li>[ ] <strong>Endpoints tested with curl</strong></li>
+<li>[ ] <strong>CORS headers verified</strong> with OPTIONS</li>
+<li>[ ] <strong>HTTPS enforced</strong> (no http:// in production)</li>
+<li>[ ] <strong>RPC endpoint stable</strong> (test failover strategy)</li>
+<li>[ ] <strong>Destination wallet confirmed</strong> (double-check, immutable in code)</li>
+<li>[ ] <strong>Rate limiting configured</strong> (prevent brute force)</li>
+<li>[ ] <strong>Error handling graceful</strong> (no exception stack traces to user)</li>
+<li>[ ] <strong>Logging enabled</strong> (for debugging)</li>
+<li>[ ] <strong>Chrome extension deployed</strong> or X.com native support verified</li>
+<li>[ ] <strong>Monitoring alerts set</strong> (endpoint health, RPC latency)</li>
+</ul>
+<hr />
+<h2>8. Real-World Use Cases &amp; Examples</h2>
+<h3>8.1 Charitable Giving</h3>
+<p><strong>Current Friction</strong>: Donors visit website → create account → fill donation form → process payment → wait for confirmation.</p>
+<p><strong>Blink Solution</strong>:</p>
+<div class="codehilite"><pre><span></span><code>Charity posts link on X.com
+  ↓
+Follower clicks &quot;Donate 10 SOL&quot;
+  ↓
+Phantom wallet opens automatically
+  ↓
+Follower confirms signature
+  ↓
+Donation lands on-chain
+  ↓
+Charity displays thank-you message with TxHash
+
+Time: &lt;30 seconds (vs. 5-10 minutes without Blink)
+</code></pre></div>
+
+<p><strong>Production Implementation</strong>:
+- <code>/api/actions/donate</code> returns fixed amounts (0.1, 1, 5, 10 SOL)
+- Optional custom amount input
+- Metadata includes charity's mission and fund allocation
+- POST endpoint validates (donation &gt; 0.01 SOL, &lt; 100 SOL max)
+- Transaction success links to Solscan explorer</p>
+<h3>8.2 Creator Monetization</h3>
+<p><strong>Current Friction</strong>: Streamers cannot monetize directly during broadcasts; viewers must leave stream.</p>
+<p><strong>Blink Solution</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="nv">Streamer</span><span class="w"> </span><span class="nv">includes</span><span class="w"> </span><span class="nv">Blink</span><span class="w"> </span><span class="nv">URL</span><span class="w"> </span><span class="nv">in</span><span class="w"> </span><span class="nv">chat</span>
+<span class="w">  </span>↓
+<span class="nv">Chat</span><span class="w"> </span><span class="nv">message</span><span class="w"> </span><span class="nv">says</span><span class="w"> </span><span class="s2">&quot;Support me: [blink-url]&quot;</span>
+<span class="w">  </span>↓
+<span class="nv">Viewer</span><span class="w"> </span><span class="nv">clicks</span><span class="w"> </span><span class="s2">&quot;Send $5 worth of SOL&quot;</span>
+<span class="w">  </span>↓
+<span class="nv">SOL</span><span class="w"> </span><span class="nv">lands</span><span class="w"> </span><span class="nv">in</span><span class="w"> </span><span class="nv">streamer</span><span class="err">&#39;s wallet</span>
+<span class="err">  ↓</span>
+<span class="err">Streamer sees real-time notification in OBS overlay</span>
+
+<span class="err">Outcome: Direct monetization during stream, no checkout friction</span>
+</code></pre></div>
+
+<p><strong>Implementation Variation</strong>:
+- Dynamic Blink URL updates tip amount based on streamer's settings
+- Backend validates streamer address (prevents scams)
+- Returns transaction for specific streamer's wallet
+- Webhook notification when tip lands</p>
+<h3>8.3 Governance &amp; Voting</h3>
+<p><strong>Current Friction</strong>: Token voting requires visiting governance portal, verifying proposals, confirming votes separately.</p>
+<p><strong>Blink Solution</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">DAO</span><span class="w"> </span><span class="n">posts</span><span class="w"> </span><span class="n">voting</span><span class="w"> </span><span class="n">proposal</span><span class="w"> </span><span class="n">on</span><span class="w"> </span><span class="n">X</span><span class="p">.</span><span class="n">com</span><span class="w"> </span><span class="n">with</span><span class="w"> </span><span class="n">Blink</span><span class="w"> </span><span class="n">URLs</span>
+<span class="w">  </span><span class="err">↓</span>
+<span class="s">&quot;Vote YES&quot;</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">Blinks</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">actions</span><span class="o">/</span><span class="n">vote</span><span class="o">-</span><span class="n">yes</span><span class="o">?</span><span class="n">proposalId</span><span class="o">=</span><span class="mh">42</span>
+<span class="s">&quot;Vote NO&quot;</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">Blinks</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">actions</span><span class="o">/</span><span class="n">vote</span><span class="o">-</span><span class="n">no</span><span class="o">?</span><span class="n">proposalId</span><span class="o">=</span><span class="mh">42</span>
+<span class="w">  </span><span class="err">↓</span>
+<span class="n">Token</span><span class="w"> </span><span class="n">holder</span><span class="w"> </span><span class="n">clicks</span><span class="w"> </span><span class="n">preference</span>
+<span class="w">  </span><span class="err">↓</span>
+<span class="n">Voting</span><span class="w"> </span><span class="n">instruction</span><span class="w"> </span><span class="n">created</span><span class="w"> </span><span class="k">and</span><span class="w"> </span><span class="k">signed</span>
+<span class="w">  </span><span class="err">↓</span>
+<span class="n">Vote</span><span class="w"> </span><span class="n">registered</span><span class="w"> </span><span class="n">on</span><span class="o">-</span><span class="n">chain</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">transaction</span>
+<span class="w">  </span><span class="err">↓</span>
+<span class="n">Voter</span><span class="w"> </span><span class="n">receives</span><span class="w"> </span><span class="n">confirmation</span><span class="w"> </span><span class="n">with</span><span class="w"> </span><span class="n">voting</span><span class="w"> </span><span class="n">power</span><span class="w"> </span><span class="n">recorded</span>
+
+<span class="nl">Outcome:</span><span class="w"> </span><span class="n">Governance</span><span class="w"> </span><span class="n">accessible</span><span class="w"> </span><span class="n">directly</span><span class="w"> </span><span class="n">from</span><span class="w"> </span><span class="n">social</span><span class="w"> </span><span class="n">media</span>
+</code></pre></div>
+
+<p><strong>Technical Notes</strong>:
+- <code>/api/actions/vote-yes</code> and <code>/api/actions/vote-no</code> are separate endpoints
+- Each constructs appropriate voting program instruction
+- Validates user owns governance tokens (via RPC query)
+- Returns error if user has already voted or tokens insufficient</p>
+<h3>8.4 Event Ticketing</h3>
+<p><strong>Current Friction</strong>: Attendees fill form → pay via credit card → receive email ticket → verify at venue.</p>
+<p><strong>Blink Solution</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">Event</span><span class="w"> </span><span class="n">organizer</span><span class="w"> </span><span class="n">posts</span><span class="w"> </span><span class="n">Blink</span><span class="w"> </span><span class="n">URL</span>
+<span class="w">  </span><span class="err">↓</span>
+<span class="n">Attendee</span><span class="w"> </span><span class="n">clicks</span><span class="w"> </span><span class="s2">&quot;Get Ticket - 3 SOL&quot;</span>
+<span class="w">  </span><span class="err">↓</span>
+<span class="n">Payment</span><span class="w"> </span><span class="n">constructs</span><span class="p">:</span>
+<span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">Transfer</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="n">SOL</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">organizer</span>
+<span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">Mint</span><span class="w"> </span><span class="n">NFT</span><span class="w"> </span><span class="n">ticket</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">attendee</span><span class="s1">&#39;s wallet</span>
+<span class="w">  </span><span class="err">↓</span>
+<span class="n">Transaction</span><span class="w"> </span><span class="n">includes</span><span class="w"> </span><span class="n">both</span><span class="w"> </span><span class="n">instructions</span>
+<span class="w">  </span><span class="err">↓</span>
+<span class="n">Attendee</span><span class="w"> </span><span class="n">now</span><span class="w"> </span><span class="n">holds</span><span class="w"> </span><span class="n">NFT</span><span class="w"> </span><span class="p">(</span><span class="n">proof</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">ticket</span><span class="p">)</span>
+<span class="w">  </span><span class="err">↓</span>
+<span class="n">At</span><span class="w"> </span><span class="n">venue</span><span class="p">:</span><span class="w"> </span><span class="n">Organizer</span><span class="w"> </span><span class="n">scans</span><span class="w"> </span><span class="n">attendee</span><span class="s1">&#39;s NFT (verifies authenticity)</span>
+
+<span class="n">Outcome</span><span class="p">:</span><span class="w"> </span><span class="n">Frictionless</span><span class="p">,</span><span class="w"> </span><span class="n">verifiable</span><span class="w"> </span><span class="n">tickets</span><span class="w"> </span><span class="n">on</span><span class="o">-</span><span class="n">chain</span>
+</code></pre></div>
+
+<p><strong>Implementation Complexity</strong>: Medium
+- Requires two instructions (payment + NFT mint)
+- Transaction includes metadata program to store event details
+- Validates NFT collection is official (prevents counterfeits)
+- Optional: allowlist attendees, set per-wallet purchase limits</p>
+<h3>8.5 Trading/DeFi Swap</h3>
+<p><strong>Current Friction</strong>: Navigate DEX app → connect wallet → select tokens → set slippage → confirm.</p>
+<p><strong>Blink Solution</strong>:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">Social</span><span class="w"> </span><span class="n">post</span><span class="w"> </span><span class="n">suggests</span><span class="w"> </span><span class="n">trader</span><span class="w"> </span><span class="n">opportunity</span>
+<span class="w">  </span><span class="err">↓</span>
+<span class="s2">&quot;Swap 100 USDC → SOL&quot;</span><span class="w"> </span><span class="n">Blink</span>
+<span class="w">  </span><span class="err">↓</span>
+<span class="n">Blink</span><span class="w"> </span><span class="n">constructs</span><span class="w"> </span><span class="n">optimized</span><span class="w"> </span><span class="n">swap</span><span class="w"> </span><span class="n">instruction</span>
+<span class="w">  </span><span class="err">↓</span>
+<span class="n">Shows</span><span class="w"> </span><span class="n">FX</span><span class="w"> </span><span class="n">rate</span><span class="w"> </span><span class="ow">and</span><span class="w"> </span><span class="n">slippage</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">preview</span>
+<span class="w">  </span><span class="err">↓</span>
+<span class="n">Trader</span><span class="w"> </span><span class="n">confirms</span>
+<span class="w">  </span><span class="err">↓</span>
+<span class="n">Transaction</span><span class="w"> </span><span class="n">executes</span><span class="w"> </span><span class="n">atomically</span>
+<span class="w">  </span><span class="err">↓</span>
+<span class="n">Trader</span><span class="w"> </span><span class="n">now</span><span class="w"> </span><span class="n">holds</span><span class="w"> </span><span class="n">SOL</span><span class="w"> </span><span class="p">(</span><span class="n">no</span><span class="w"> </span><span class="n">counterparty</span><span class="w"> </span><span class="n">risk</span><span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Implementation Complexity</strong>: High
+- Requires composing DEX program instructions (Jupiter, Marinade, etc.)
+- Dynamic price quotes (may require API call to DEX)
+- Slippage tolerance (user customizable)
+- Transaction may fail if price moves (requires retry logic)</p>
+<h3>8.6 Other Emerging Use Cases</h3>
+<table>
+<thead>
+<tr>
+<th>Use Case</th>
+<th>Transaction Type</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Contest Entries</td>
+<td>SOL + metadata</td>
+<td>Live</td>
+</tr>
+<tr>
+<td>Staking Pools</td>
+<td>Delegate stake</td>
+<td>In dev</td>
+</tr>
+<tr>
+<td>NFT Minting</td>
+<td>SPL token transfer</td>
+<td>Live</td>
+</tr>
+<tr>
+<td>Escrow Services</td>
+<td>Multi-sig lock</td>
+<td>In dev</td>
+</tr>
+<tr>
+<td>Subscription Payments</td>
+<td>Recurring (via program)</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>Lending/Borrowing</td>
+<td>Collateral deposit</td>
+<td>In dev</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>9. Roadmap &amp; Future Enhancements</h2>
+<h3>9.1 Short-Term (Next 3-6 Months)</h3>
+<h4><strong>Q2 2026: Mobile Wallet Integration</strong></h4>
+<ul>
+<li>Phantom Mobile native Blink support</li>
+<li>Backpack Mobile native Blink support</li>
+<li>Solflare deep linking</li>
+<li><strong>Impact</strong>: 3-4x user base expansion (mobile-first market)</li>
+</ul>
+<h4><strong>Q2 2026: Enhanced Metadata</strong></h4>
+<ul>
+<li>Transaction preview with human-readable instructions</li>
+<li>Estimated fee display pre-signing</li>
+<li>Transaction simulation results (show what happens without signing)</li>
+<li><strong>Impact</strong>: User confidence increases, reduces failed transactions</li>
+</ul>
+<h4><strong>Q3 2026: Blink Template Library</strong></h4>
+<ul>
+<li>Pre-built templates for common actions (donate, vote, mint, swap)</li>
+<li>Drag-and-drop builder for non-developers</li>
+<li>One-click deployment to GitHub Pages / Vercel</li>
+<li><strong>Impact</strong>: Accessibility for non-technical creators</li>
+</ul>
+<h3>9.2 Medium-Term (6-12 Months)</h3>
+<h4><strong>Q3 2026: Multi-Chain Blinks</strong></h4>
+<ul>
+<li>Blinks that work on Polygon, Arbitrum, Base, Ethereum</li>
+<li>Unified Blink standard (not Solana-only)</li>
+<li>Cross-chain bridge actions</li>
+<li><strong>Impact</strong>: Expand TAM from Solana users to all blockchain users</li>
+</ul>
+<h4><strong>Q4 2026: Blink Marketplace/Registry</strong></h4>
+<ul>
+<li>Verified action directory (like GitHub Actions marketplace)</li>
+<li>Community-curated, with attestations</li>
+<li>Search for actions by category (charity, gaming, DeFi, etc.)</li>
+<li><strong>Impact</strong>: Discoverability of trustworthy Blinks</li>
+</ul>
+<h4><strong>Q4 2026: Advanced Security</strong></h4>
+<ul>
+<li>Blink signature verification (cryptographically attest to action authenticity)</li>
+<li>Risk scoring (rate actions by historical safety)</li>
+<li>Insurance/bonding for high-value actions</li>
+<li><strong>Impact</strong>: Built-in trust without user research</li>
+</ul>
+<h3>9.3 Long-Term Vision (12+ Months)</h3>
+<h4><strong>2027: Ubiquitous Blockchain in Social Media</strong></h4>
+<ul>
+<li>X.com, Farcaster, Mirror, Bluesky native Blink support</li>
+<li>TikTok, Instagram Blink integration (ecosystem dependent)</li>
+<li>Email clients support Blink URLs</li>
+<li><strong>Impact</strong>: Blockchain becomes as natural as URLs</li>
+</ul>
+<h4><strong>2027: Smart Contract Automation</strong></h4>
+<ul>
+<li>Blinks that chain multiple transactions (swap → stake → delegate)</li>
+<li>Complex logic (conditional actions based on wallet data)</li>
+<li>Composable actions (Blinks that invoke other Blinks)</li>
+<li><strong>Impact</strong>: Sophisticated DeFi strategies expressible as single Blink</li>
+</ul>
+<h4><strong>2027: Natural Language Blink Construction</strong></h4>
+<ul>
+<li>"Create a blink that donates 5 SOL to this address"</li>
+<li>LLM generates endpoint implementation</li>
+<li>Auto-deployment to user's domain</li>
+<li><strong>Impact</strong>: Non-developer access to Blink creation</li>
+</ul>
+<h3>9.4 Open Questions</h3>
+<p><strong>Q: Will X.com provide native Blink support or require extensions indefinitely?</strong>
+- Current: Extension + partial native support
+- Likely: 2026 Q4 native full support (X benefits from transaction fees)
+- Timeline: 6-12 months</p>
+<p><strong>Q: How do Blinks handle regulatory compliance (KYC/AML)?</strong>
+- Current: No compliance (non-custodial, peer-to-peer)
+- Future: Optional compliance middleware for regulated entities
+- Approach: Blinks themselves remain compliant-agnostic; optional wrapper layer</p>
+<p><strong>Q: Can Blinks work on L2s like Arbitrum or only Solana?</strong>
+- Current: Solana-only (Dialect SDK focused there)
+- Future: EVM-based Blink standard (cross-chain standard needed)
+- Timeline: 2027</p>
+<p><strong>Q: How do we prevent Blink spam/scams at scale?</strong>
+- Solutions emerging: community reviews, verified registries, insurance pools
+- Not solved: requires ongoing ecosystem maturation</p>
+<hr />
+<h2>10. Appendices</h2>
+<h3>10.1 Glossary</h3>
+<p><strong>Blockchain Action</strong>: A shareable blockchain interaction encapsulated as a URL. Also called "Blink" in Solana ecosystem.</p>
+<p><strong>Blink Client</strong>: The application (X.com, Phantom, Backpack) that renders Blink UI and manages wallet interaction. Also called "Blink consumer".</p>
+<p><strong>Blink Provider</strong>: Your API that exposes Solana action endpoints. Responsible for transaction construction.</p>
+<p><strong>Dialect</strong>: The Solana Foundation's standards body for blockchain actions. Maintains <code>@solana/actions</code> SDK.</p>
+<p><strong>Non-Custodial</strong>: User retains private key control throughout. Provider never touches keys.</p>
+<p><strong>Solana Actions</strong>: The open standard (RFC-style) that defines Blink endpoint formats, CORS handling, and transaction encoding.</p>
+<p><strong>Versioned Transaction</strong>: Modern Solana transaction format supporting multiple signature types and future extensibility.</p>
+<p><strong>Lamport</strong>: 1 SOL = 1 billion lamports (smallest unit on Solana, named after Leslie Lamport).</p>
+<p><strong>Blockhash</strong>: Solana's mechanism to prevent transaction replay. Expires after ~2 minutes.</p>
+<p><strong>Devnet</strong>: Solana's development network (free SOL, instant confirmation, resets weekly).</p>
+<p><strong>Phantom Wallet</strong>: Most popular Solana wallet browser extension and mobile app.</p>
+<p><strong>Backpack</strong>: Alternative Solana wallet with strong Xverse integration.</p>
+<hr />
+<h3>10.2 Troubleshooting Guide</h3>
+<table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Cause</th>
+<th>Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Extension doesn't detect Blink URL</td>
+<td>URL doesn't return JSON or missing CORS headers</td>
+<td>Verify endpoint returns <code>Content-Type: application/json</code> and <code>Access-Control-Allow-Origin: *</code></td>
+</tr>
+<tr>
+<td>Transaction fails to sign in wallet</td>
+<td>Blockhash expired (&gt;2 min old)</td>
+<td>Call <code>getLatestBlockhash()</code> immediately before returning transaction</td>
+</tr>
+<tr>
+<td>"CORS error" in browser</td>
+<td>Missing OPTIONS endpoint or incorrect headers</td>
+<td>Implement OPTIONS handler that returns <code>Access-Control-Allow-*</code> headers</td>
+</tr>
+<tr>
+<td>Button labels not showing</td>
+<td>Metadata missing <code>links.actions</code> array</td>
+<td>Verify GET response includes complete action definition</td>
+</tr>
+<tr>
+<td>Custom amount input doesn't work</td>
+<td>Query param not passed to POST</td>
+<td>Ensure button <code>href</code> includes <code>?amount={amount}</code> or parameter name</td>
+</tr>
+<tr>
+<td>Wallet shows wrong destination address</td>
+<td>Hardcoded address incorrect</td>
+<td>Double-check destination wallet in POST handler (typo = lost funds)</td>
+</tr>
+<tr>
+<td>Transaction "Insufficient funds" error</td>
+<td>User wallet balance &lt; transfer amount + fees</td>
+<td>Inform user of minimum balance requirement</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>10.3 Additional Resources</h3>
+<p><strong>Official Documentation:</strong>
+- <a href="https://solana.com/docs/core/actions">Solana Actions Specification</a> — Official standard
+- <a href="https://www.dialect.to">Dialect Labs</a> — Action standard maintainers
+- <a href="https://docs.phantom.app">Phantom Wallet Docs</a> — Implementation details</p>
+<p><strong>This Project:</strong>
+- Repository: <a href="https://github.com/your-repo">blink-anti-gravity</a>
+- Deployment: https://blink-with-anti.vercel.app
+- Devnet Testing: https://api.devnet.solana.com</p>
+<p><strong>Testing Tools:</strong>
+- <a href="https://solscan.io/txs?cluster=devnet">Solscan</a> — View devnet transactions
+- <a href="https://solana.fm">SolanaFM</a> — Alternative explorer
+- <a href="https://dial.to">dial.to</a> — When available: integrated Blink testing</p>
+<hr />
+<h3>10.4 FAQ</h3>
+<p><strong>Q: Do I need approval from X.com to create a Blink?</strong>
+A: No. Blinks are open protocol. X.com automatically recognizes URLs with proper metadata.</p>
+<p><strong>Q: Can I create a Blink that transfers tokens to multiple addresses?</strong>
+A: Yes. Construct multiple <code>SystemProgram.transfer()</code> instructions in a single transaction.</p>
+<p><strong>Q: What if my RPC endpoint goes down?</strong>
+A: Implement failover: try primary → fallback → user error message. Consider Alchemy or QuickNode paid tier for uptime SLA.</p>
+<p><strong>Q: Do users pay transaction fees?</strong>
+A: Yes, user pays Solana network fees (typically 0.00025 SOL per transaction). Receiver gets full transferred amount.</p>
+<p><strong>Q: Can I use Blinks to mint NFTs?</strong>
+A: Yes. Include <code>createMint()</code> or metadata program instruction alongside transfer. One transaction = payment + mint.</p>
+<p><strong>Q: What happens if a transaction fails?</strong>
+A: User sees error message. No funds transferred (atomic). User can adjust constraints (amount, slippage) and try again.</p>
+<hr />
+<h2>Conclusion</h2>
+<p>Blinks represent a fundamental shift in blockchain accessibility. By embedding blockchain transactions directly into social media and removing the friction of wallet-switching, address verification, and manual transaction construction, Blinks bring blockchain capabilities to mainstream users.</p>
+<p>This white paper documented the architecture, security model, implementation patterns, and real-world applications of Solana Blinks. The reference implementation (Donate SOL) demonstrates these concepts concretely. As the ecosystem matures—with native platform support, multi-chain expansion, and template libraries—Blinks are positioned to become the standard interaction model between social platforms and blockchain applications.</p>
+<p><strong>For developers:</strong> Use this documentation as a reference for building your own Blinks. The pattern is standardized, the security model is well-defined, and the tooling improves continuously.</p>
+<p><strong>For business stakeholders:</strong> Blinks unlock new monetization channels, user engagement models, and distribution mechanisms for blockchain applications. Frictionless transactions drive adoption.</p>
+<hr />
+<p><strong>Document Version:</strong> 1.0<br />
+<strong>Last Updated:</strong> April 20, 2026<br />
+<strong>Feedback:</strong> Open to community contributions and corrections.</p>
+</body>
+</html>
