@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import { resolve } from "path";
 import { copyFileSync, mkdirSync, existsSync, readdirSync } from "fs";
 import { extname } from "path";
+import { build as esbuild } from "esbuild";
 
 export default defineConfig({
   build: {
@@ -13,24 +14,31 @@ export default defineConfig({
       },
       output: {
         entryFileNames: "[name].js",
-        // Chrome content scripts need IIFE format
         format: "iife",
-        // Force CSS to be inlined into the JS bundle
         assetFileNames: "[name][extname]",
       },
     },
-    // Inline all CSS into the JS so it gets injected by the content script
     cssCodeSplit: false,
   },
   plugins: [
     {
       name: "copy-manifest-and-icons",
-      closeBundle() {
+      async closeBundle() {
         // Copy manifest.json into dist/
         copyFileSync(
           resolve(__dirname, "manifest.json"),
           resolve(__dirname, "dist/manifest.json")
         );
+
+        await esbuild({
+          entryPoints: [resolve(__dirname, "src/pageWalletBridge.ts")],
+          outfile: resolve(__dirname, "dist/pageWalletBridge.js"),
+          bundle: true,
+          format: "iife",
+          platform: "browser",
+          target: ["chrome120"],
+          minify: true,
+        });
 
         // Ensure icons directory exists
         const iconsDir = resolve(__dirname, "dist/icons");

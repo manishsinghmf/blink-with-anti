@@ -19,10 +19,24 @@
       "run_at": "document_idle"
     }
   ],
+  "web_accessible_resources": [
+    {
+      "resources": ["pageWalletBridge.js"],
+      "matches": [
+        "https://twitter.com/*",
+        "https://x.com/*",
+        "https://pro.x.com/*"
+      ]
+    }
+  ],
   "permissions": [],
   "host_permissions": [
+    "http://localhost:3000/*",
+    "http://127.0.0.1:3000/*",
     "https://*.vercel.app/*",
     "https://api.devnet.solana.com/*",
-    "https://api.dial.to/*"
+    "https://api.dial.to/*",
+    "https://actions-registry.dial.to/*",
+    "https://registry.dial.to/*"
   ]
 }
