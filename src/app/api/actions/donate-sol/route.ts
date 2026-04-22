@@ -11,6 +11,7 @@ import {
   LAMPORTS_PER_SOL,
   SystemProgram,
   TransactionMessage,
+  VersionedMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
 
@@ -22,6 +23,7 @@ const connection = new Connection("https://api.devnet.solana.com");
 
 // Set the donation wallet address (Dummy valid key for testing)
 const donationWallet = "HS7M3zgnFVucMMM5k1a2sPBPjRndfYNW7Ep6eMueCvX4";
+const MIN_BALANCE_BUFFER_LAMPORTS = 5_000;
 
 const headers = {
   ...ACTIONS_CORS_HEADERS,
@@ -94,13 +96,30 @@ export const POST = async (req: Request) => {
     }
 
     const receiver = new PublicKey(donationWallet);
-
-    const transaction = await prepareTransaction(
+    const transferLamports = Math.round(amount * LAMPORTS_PER_SOL);
+    const { message, transaction } = await prepareTransaction(
       connection,
       payer,
       receiver,
-      amount
+      transferLamports
     );
+    const feeLamports = await getEstimatedFee(connection, message);
+    const payerBalanceLamports = await connection.getBalance(payer, "confirmed");
+    const totalRequiredLamports =
+      transferLamports + feeLamports + MIN_BALANCE_BUFFER_LAMPORTS;
+
+    if (payerBalanceLamports < totalRequiredLamports) {
+      return new Response(
+        JSON.stringify({
+          error: createInsufficientFundsMessage(
+            payerBalanceLamports,
+            transferLamports,
+            feeLamports
+          ),
+        }),
+        { status: 400, headers }
+      );
+    }
 
     const response: ActionPostResponse = {
       type: "transaction",
@@ -118,12 +137,12 @@ const prepareTransaction = async (
   connection: Connection,
   payer: PublicKey,
   receiver: PublicKey,
-  amount: number
+  transferLamports: number
 ) => {
   const instruction = SystemProgram.transfer({
     fromPubkey: payer,
     toPubkey: new PublicKey(receiver),
-    lamports: Math.round(amount * LAMPORTS_PER_SOL),
+    lamports: transferLamports,
   });
 
   const { blockhash } = await connection.getLatestBlockhash();
@@ -134,5 +153,35 @@ const prepareTransaction = async (
     instructions: [instruction],
   }).compileToV0Message();
 
-  return new VersionedTransaction(message);
+  return {
+    message,
+    transaction: new VersionedTransaction(message),
+  };
+};
+
+const getEstimatedFee = async (
+  connection: Connection,
+  message: VersionedMessage
+) => {
+  const fee = await connection.getFeeForMessage(message, "confirmed");
+  return fee.value ?? 0;
+};
+
+const formatSol = (lamports: number) => {
+  return (lamports / LAMPORTS_PER_SOL).toFixed(6);
+};
+
+const createInsufficientFundsMessage = (
+  balanceLamports: number,
+  transferLamports: number,
+  feeLamports: number
+) => {
+  const totalLamports =
+    transferLamports + feeLamports + MIN_BALANCE_BUFFER_LAMPORTS;
+
+  return `Insufficient SOL balance. Wallet has ${formatSol(
+    balanceLamports
+  )} SOL, but needs about ${formatSol(totalLamports)} SOL (${formatSol(
+    transferLamports
+  )} SOL donation + network fee).`;
 };

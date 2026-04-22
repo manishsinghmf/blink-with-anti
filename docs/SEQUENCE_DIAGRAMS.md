@@ -33,12 +33,6 @@ This file contains a single practical sequence diagram optimized for [sequencedi
 ```
 title Solana Blinks - Practical Architecture (No Registry)
 
-participant User
-participant X["X.com\n(Blink-capable client)"]
-participant Provider["Blink Provider\n(Your API)"]
-participant Wallet["Wallet\n(Phantom / etc.)"]
-participant RPC["Solana RPC"]
-
 Note over User,RPC: Phase 1: Sharing & Unfurl (Preview Phase)
 
 User->>X: Paste Blink URL

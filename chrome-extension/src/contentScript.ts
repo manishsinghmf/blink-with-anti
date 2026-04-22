@@ -40,13 +40,18 @@ const BRIDGE_SCRIPT_ID = "blink-unfurler-page-wallet-bridge";
 const BRIDGE_REQUEST_SOURCE = "blink-unfurler-content-script";
 const BRIDGE_RESPONSE_SOURCE = "blink-unfurler-page-bridge";
 const BRIDGE_TIMEOUT_MS = 30000;
-
-const PREVIEW_ALLOWED_HOSTS = new Set([
+const DEFAULT_PREVIEW_ALLOWED_HOSTS = [
   "blink-with-anti.vercel.app",
   "binksy.vercel.app",
   "localhost:3000",
   "127.0.0.1:3000",
-]);
+];
+const PREVIEW_ALLOWED_HOSTS = new Set(
+  (import.meta.env.VITE_PREVIEW_ALLOWED_HOSTS ?? DEFAULT_PREVIEW_ALLOWED_HOSTS.join(","))
+    .split(",")
+    .map((host) => host.trim())
+    .filter(Boolean)
+);
 
 const CUSTOM_WRAPPER_SELECTOR = '[data-blink-unfurler="preview"]';
 const SCAN_INTERVAL_MS = 2000;

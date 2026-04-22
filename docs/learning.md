@@ -407,3 +407,73 @@ Running `npm run build` (Next.js production build) failed because:
 
 ## Summary
 Through this process, we built a complete Solana Blinks project: a provider API deployed on Vercel, a standalone donate landing page, and a custom Chrome extension that unfurls blink URLs on X.com. The extension uses Dialect's `setupTwitterObserver()` with a custom adapter that bridges to Phantom wallet for transaction signing.
+
+## 15. Blink Preview Unfurling Debug Cycle
+
+**What you asked:**
+You reported that the custom Chrome extension still was not unfurling Blink links on X.com, even though the Blink inspector looked correct and Dialect registration was unavailable.
+
+**What I did:**
+1. Verified that Dialect's built-in X observer defaults to `securityLevel: "only-trusted"`, which blocks unregistered blinks from rendering.
+2. Confirmed that your shared `/donate-sol` page had `solana:action:apiUrl` metadata, but the extension was only logging that metadata and never mounting the Blink UI.
+3. Reworked the extension so it:
+   - Allows preview rendering for your own allowlisted hosts
+   - Resolves direct action URLs, `/actions.json` mappings, and page metadata fallback
+   - Mounts Blink UI directly into the X timeline
+   - Logs discovery, resolution, fetch, and mount failures in DevTools
+4. Added the missing Dialect registry host permissions to the manifest.
+5. Updated the DOM scanning logic to look for anchors directly, because X.com's DOM is volatile and the original observer assumptions were too narrow.
+
+**Result:**
+The Blink unfurl path started working on X.com for your project URLs.
+
+## 16. Wallet Bridge for Phantom / Backpack
+
+**What you asked:**
+Once the Blink UI appeared, clicking it showed `No Solana wallet found. Please install Phantom or Backpack.`
+
+**What I did:**
+1. Diagnosed the issue as a Chrome extension isolation problem:
+   - Phantom injects `window.solana` into the page context
+   - Chrome content scripts run in an isolated world and often cannot see that provider directly
+2. Added a dedicated page-context bridge file: `chrome-extension/src/pageWalletBridge.ts`
+3. Updated the content script to:
+   - Inject the bridge into the page
+   - Forward `connect`, `signTransaction`, and `signMessage` calls through `window.postMessage`
+   - Continue rendering the Blink UI from the content script while performing wallet actions in page context
+4. Updated the manifest so `pageWalletBridge.js` is exposed as a web-accessible resource.
+5. Adjusted the Vite build so the content script stays self-contained while the page wallet bridge is emitted as a separate browser bundle.
+
+**Result:**
+The extension can now detect and use the installed Phantom / Backpack provider from X.com.
+
+## 17. Duplicate Transaction / Simulation Failure Handling
+
+**What you asked:**
+After wallet connection worked, the action failed with:
+`Simulation failed. Message: Transaction simulation failed: This transaction has already been processed.`
+
+**What I did:**
+1. Confirmed that your installed `@solana/web3.js` exposes `SendTransactionError.getLogs(connection)`.
+2. Updated the extension adapter in `chrome-extension/src/contentScript.ts` to:
+   - Extract the signed transaction's signature after Phantom signs it
+   - Catch `SendTransactionError`
+   - Attempt to fetch full logs via `getLogs(connection)`
+   - Log the full failure payload in DevTools for easier debugging
+   - Special-case `"already been processed"` so the extension reuses the existing transaction signature instead of treating it as a hard Blink failure
+
+**Why this happens:**
+This usually means the exact same signed transaction bytes were submitted more than once, so preflight sees it as already known/processed and rejects the duplicate send.
+
+**Result:**
+The extension is now more resilient to duplicate-submit behavior during Blink previews and gives better Solana-specific diagnostics.
+
+## 18. Future Logging Rule
+
+**What you asked:**
+You asked whether `learning.md` was being updated for each prompt / interaction, and requested that all preview interactions including this one be documented and that future interactions should be updated as well.
+
+**What I will do going forward:**
+1. Continue appending meaningful project interactions and troubleshooting cycles to `docs/learning.md`
+2. Include Blink preview / extension / wallet / deployment debugging updates there as they happen
+3. Treat `learning.md` as the running project memory for implementation decisions, failures, fixes, and verified learnings
