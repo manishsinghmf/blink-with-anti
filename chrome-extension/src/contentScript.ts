@@ -46,6 +46,7 @@ const DEFAULT_PREVIEW_ALLOWED_HOSTS = [
   "localhost:3000",
   "127.0.0.1:3000",
 ];
+console.log("env vars", import.meta.env.VITE_PREVIEW_ALLOWED_HOSTS);
 const PREVIEW_ALLOWED_HOSTS = new Set(
   (import.meta.env.VITE_PREVIEW_ALLOWED_HOSTS ?? DEFAULT_PREVIEW_ALLOWED_HOSTS.join(","))
     .split(",")
