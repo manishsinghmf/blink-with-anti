@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Blink Anti Gravity
 
-## Getting Started
+Solana Blink provider with:
 
-First, run the development server:
+- Donate SOL action flow
+- Send SOL action flow
+- Shareable Blink pages
+- X.com/Twitter unfurl support via custom Chrome extension
+
+## Prerequisites
+
+- Node.js 18+ (recommended: latest LTS)
+- npm
+- Chrome browser (for extension testing on X.com)
+
+## Deployed URL
+
+- Base URL: `https://demo-blinks.vercel.app/`
+- Donate Blink URL: `https://demo-blinks.vercel.app/donate-sol`
+- Send Blink URL: `https://demo-blinks.vercel.app/send-sol`
+
+## Project Structure
+
+- `src/app/api/actions/donate-sol/route.ts` - Donate action API
+- `src/app/api/actions/send-sol/route.ts` - Send action API
+- `src/app/actions.json/route.ts` - Solana Actions discovery mapping
+- `src/app/donate-sol/` - Donate share page + Blink UI
+- `src/app/send-sol/` - Send share page + Blink UI
+- `src/app/blink/` - Generic Blink client page
+- `chrome-extension/` - X.com unfurler extension (content script + wallet bridge)
+
+## Local Development
+
+1) Install dependencies:
+
+```bash
+npm install
+```
+
+2) Run Next.js app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3) Open app URLs:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Home: `http://localhost:3000/`
+- Donate page: `http://localhost:3000/donate-sol`
+- Send page: `http://localhost:3000/send-sol`
+- Blink client: `http://localhost:3000/blink`
+- Actions JSON: `http://localhost:3000/actions.json`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Action Endpoints
 
-## Learn More
+- `GET/POST/OPTIONS /api/actions/donate-sol`
+- `GET/POST/OPTIONS /api/actions/send-sol`
+- `GET/OPTIONS /actions.json`
 
-To learn more about Next.js, take a look at the following resources:
+Both action APIs target Solana Devnet and return Solana Action-compatible payloads.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Chrome Extension (X.com Unfurl)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 1) Setup extension environment
 
-## Deploy on Vercel
+Create `chrome-extension/.env` and configure allowed hosts:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```env
+VITE_PREVIEW_ALLOWED_HOSTS=demo-blinks.vercel.app,localhost:3000,127.0.0.1:3000
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+You can include multiple hosts separated by commas.
+
+### 2) Build extension
+
+```bash
+cd chrome-extension
+npm install
+npm run build
+```
+
+### 3) Load extension in Chrome
+
+1. Open `chrome://extensions`
+2. Enable Developer Mode
+3. Click "Load unpacked"
+4. Select `chrome-extension/dist`
+
+### 4) Unfurl behavior and allowed hosts
+
+- Unfurling on X.com works only when the posted URL host is included in `VITE_PREVIEW_ALLOWED_HOSTS`.
+- For production usage, include your deployed host (for example `demo-blinks.vercel.app`).
+- For local testing, include `localhost:3000` and/or `127.0.0.1:3000`.
+- After changing `chrome-extension/.env`, rebuild the extension with `npm run build` and reload it in Chrome.
+- Share deployed Blink URLs like `https://demo-blinks.vercel.app/donate-sol` to ensure reliable unfurl behavior.
+
+## Diagrams
+
+Diagram sources are in `docs/`:
+
+- `docs/sequence_diagram.md`
+- `docs/sequence_diagram_with_extension.md`
+- `docs/architecture_diagram.md`
+
+Each file contains only diagram code for direct paste into [sequencediagram.org](https://sequencediagram.org/).
