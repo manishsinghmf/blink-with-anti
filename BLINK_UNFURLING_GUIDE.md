@@ -1,14 +1,14 @@
 # Blink Unfurling Debug Guide
 
 ## Problem Summary
-Your Blink at `https://blink-with-anti.vercel.app/donate-sol` is not unfurling on X.com, even though the Chrome extension is installed and the action metadata is available.
+Your Blink at `https://demo-blinks.vercel.app/donate-sol` is not unfurling on X.com, even though the Chrome extension is installed and the action metadata is available.
 
 ## Root Cause
 The issue is about **URL discovery and action registration**:
 
 1. **Page vs Action endpoint mismatch**
-   - You're sharing: `https://blink-with-anti.vercel.app/donate-sol` (a React UI page)
-   - Action metadata is at: `https://blink-with-anti.vercel.app/api/actions/donate-sol` (returns JSON)
+   - You're sharing: `https://demo-blinks.vercel.app/donate-sol` (a React UI page)
+   - Action metadata is at: `https://demo-blinks.vercel.app/api/actions/donate-sol` (returns JSON)
    - The Chrome extension's `setupTwitterObserver` doesn't know these are connected
 
 2. **How X unfurling works**
@@ -22,7 +22,7 @@ The issue is about **URL discovery and action registration**:
 ### ✅ Solution 1: Added `/api/donate` Endpoint (Recommended)
 - **Location**: `src/app/api/donate/route.ts`
 - **What it does**: Returns the full Solana Action spec when accessed
-- **Share URL**: `https://blink-with-anti.vercel.app/api/donate`
+- **Share URL**: `https://demo-blinks.vercel.app/api/donate`
 - **Why it works**: When users share this URL, crawlers and the extension can directly fetch the action JSON
 
 ### ✅ Solution 2: Enhanced Layout Metadata
@@ -37,7 +37,7 @@ The issue is about **URL discovery and action registration**:
 
 ### Option A: Direct Action URL (Recommended for X Sharing)
 ```
-Share: https://blink-with-anti.vercel.app/api/donate
+Share: https://demo-blinks.vercel.app/api/donate
 ```
 ✅ Pros: 
 - Instantly unfurls on X with Chrome extension
@@ -46,7 +46,7 @@ Share: https://blink-with-anti.vercel.app/api/donate
 
 ### Option B: HTML Page URL
 ```
-Share: https://blink-with-anti.vercel.app/donate-sol
+Share: https://demo-blinks.vercel.app/donate-sol
 ```
 ⚠️ Cons:
 - Returns HTML, not JSON
@@ -55,7 +55,7 @@ Share: https://blink-with-anti.vercel.app/donate-sol
 
 ### Option C: Full Action Endpoint
 ```
-Share: https://blink-with-anti.vercel.app/api/actions/donate-sol
+Share: https://demo-blinks.vercel.app/api/actions/donate-sol
 ```
 - Most direct but less user-friendly
 - Returns raw action JSON
@@ -90,22 +90,22 @@ Share: https://blink-with-anti.vercel.app/api/actions/donate-sol
 
 - [ ] **5. Test on X.com**
   - Visit X.com (must have Chrome extension installed)
-  - Paste link: `https://blink-with-anti.vercel.app/api/donate`
+  - Paste link: `https://demo-blinks.vercel.app/api/donate`
   - Should see a card preview appear
   - Click to unfurl the Blink UI
 
 - [ ] **6. Verify Action Endpoints**
   ```bash
   # Should return JSON:
-  curl https://blink-with-anti.vercel.app/api/donate
-  curl https://blink-with-anti.vercel.app/api/actions/donate-sol
+  curl https://demo-blinks.vercel.app/api/donate
+  curl https://demo-blinks.vercel.app/api/actions/donate-sol
   ```
 
 ## Architecture Diagram
 
 ```
 ┌─ User shares on X.com ─────────────┐
-│  https://blink-with-anti.vercel.app/api/donate
+│  https://demo-blinks.vercel.app/api/donate
 └────────────────────────────────────┘
                   ↓
         ┌─ X Crawler ─┐
@@ -169,7 +169,7 @@ Share: https://blink-with-anti.vercel.app/api/actions/donate-sol
    Then re-load it in Chrome at `chrome://extensions/`
 
 4. **Share the URL on X**
-   - Use: `https://blink-with-anti.vercel.app/api/donate`
+   - Use: `https://demo-blinks.vercel.app/api/donate`
    - With extension installed, it should unfurl inline
 
 ## Troubleshooting
@@ -208,6 +208,6 @@ chrome-extension/
 
 1. **Deploy this code**: After pushing these changes, your Blink should work
 2. **Test the new endpoint**: `curl https://your-domain.vercel.app/api/donate`
-3. **Share and spread**: Use `https://blink-with-anti.vercel.app/api/donate` on X
+3. **Share and spread**: Use `https://demo-blinks.vercel.app/api/donate` on X
 
 Questions? Check the [Solana Actions spec](https://solana.com/docs/advanced/actions) or [Dialect Blinks docs](https://docs.dialect.to/blinks)

@@ -10,8 +10,8 @@ export const metadata: Metadata = {
     title: "Donate SOL — Solana Blink",
     description:
       "Support the project by donating SOL. Powered by Solana Actions & Dialect Blinks.",
-    url: "https://blink-with-anti.vercel.app/donate-sol",
-    images: ["https://blink-with-anti.vercel.app/donate-sol.jpg"],
+    url: "https://demo-blinks.vercel.app/donate-sol",
+    images: ["https://demo-blinks.vercel.app/donate-sol.jpg"],
     type: "website",
   },
   twitter: {
@@ -19,15 +19,15 @@ export const metadata: Metadata = {
     title: "Donate SOL — Solana Blink",
     description:
       "Support the project by donating SOL. Powered by Solana Actions & Dialect Blinks.",
-    images: ["https://blink-with-anti.vercel.app/donate-sol.jpg"],
+    images: ["https://demo-blinks.vercel.app/donate-sol.jpg"],
   },
   other: {
     "solana:action:apiUrl":
-      "https://blink-with-anti.vercel.app/api/actions/donate-sol",
+      "https://demo-blinks.vercel.app/api/actions/donate-sol",
     "solana:action:type": "transaction",
     "solana:action:label": "Donate SOL",
     "solana:action:icon":
-      "https://blink-with-anti.vercel.app/donate-sol.jpg",
+      "https://demo-blinks.vercel.app/donate-sol.jpg",
   },
 };
 

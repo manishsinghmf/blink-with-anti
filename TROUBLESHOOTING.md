@@ -32,17 +32,17 @@ Copy ONE of these and paste on X.com as a new post:
 
 **Option A: Direct Action Endpoint** ⭐ RECOMMENDED
 ```
-https://blink-with-anti.vercel.app/api/donate
+https://demo-blinks.vercel.app/api/donate
 ```
 
 **Option B: Donate Page** (Alternative)
 ```
-https://blink-with-anti.vercel.app/donate-sol
+https://demo-blinks.vercel.app/donate-sol
 ```
 
 **Option C: Full Action with Amount**
 ```
-https://blink-with-anti.vercel.app/api/actions/donate-sol?amount=0.1
+https://demo-blinks.vercel.app/api/actions/donate-sol?amount=0.1
 ```
 
 ### 4. **Check if Blink Unfurls**
@@ -57,7 +57,7 @@ After pasting the URL on X.com:
 
 1. **You paste the link on X.com**
    ```
-   https://blink-with-anti.vercel.app/api/donate
+   https://demo-blinks.vercel.app/api/donate
    ```
 
 2. **Chrome extension detects it** (runs in background)
@@ -98,7 +98,7 @@ cat chrome-extension/dist/manifest.json | grep manifest_version
 Test from terminal:
 ```bash
 # Should return action JSON:
-curl -s https://blink-with-anti.vercel.app/api/donate | jq .
+curl -s https://demo-blinks.vercel.app/api/donate | jq .
 
 # Should contain:
 # {
@@ -175,7 +175,7 @@ Try these debugging steps:
 
 You can also test the Blink UI directly by visiting:
 ```
-https://blink-with-anti.vercel.app/donate-sol
+https://demo-blinks.vercel.app/donate-sol
 ```
 
 This page shows the Blink UI without needing the extension. The extension just makes it appear inline on X.com feeds.

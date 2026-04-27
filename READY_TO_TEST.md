@@ -5,7 +5,7 @@
 A **Solana Blink for donations** that works in two ways:
 
 ### **1. Without Extension: Direct Page** ✓
-- Share: `https://blink-with-anti.vercel.app/donate-sol`
+- Share: `https://demo-blinks.vercel.app/donate-sol`
 - X.com shows a preview card
 - Users can visit the page and donate
 - **Status**: Working perfectly
@@ -31,7 +31,7 @@ GET  /api/actions/donate-sol?amount=X → Transaction handler ✓
 POST /api/actions/donate-sol       → Execute transaction ✓
 ```
 
-All are deployed to: `https://blink-with-anti.vercel.app`
+All are deployed to: `https://demo-blinks.vercel.app`
 
 ### **B. Chrome Extension** (`/home/manish/projects/blinks/blink-anti-gravity/chrome-extension/`)
 ```
@@ -54,7 +54,7 @@ Files:
 ```
 You paste link on X.com
         ↓
-https://blink-with-anti.vercel.app/donate-sol
+https://demo-blinks.vercel.app/donate-sol
         ↓
 X.com crawler fetches it
         ↓
@@ -93,9 +93,9 @@ Users can click donate without leaving X.com
 ### **Step 1: Verify Website is Working**
 ```bash
 # Test all three endpoints
-curl -i https://blink-with-anti.vercel.app/donate-sol | head -20
-curl https://blink-with-anti.vercel.app/api/donate | jq .type
-curl https://blink-with-anti.vercel.app/api/actions/donate-sol | jq .type
+curl -i https://demo-blinks.vercel.app/donate-sol | head -20
+curl https://demo-blinks.vercel.app/api/donate | jq .type
+curl https://demo-blinks.vercel.app/api/actions/donate-sol | jq .type
 
 # All should return proper responses
 ```
@@ -113,7 +113,7 @@ curl https://blink-with-anti.vercel.app/api/actions/donate-sol | jq .type
 3. Go to **Console** tab
 4. Create a new post and paste:
    ```
-   https://blink-with-anti.vercel.app/donate-sol
+   https://demo-blinks.vercel.app/donate-sol
    ```
 5. **Watch the Console** - should see:
    ```
@@ -169,7 +169,7 @@ After testing, let me know:
 - [ ] Do interactive Donate buttons appear inline in the feed?
 
 **About direct page visit:**
-- [ ] Visit `https://blink-with-anti.vercel.app/donate-sol` directly
+- [ ] Visit `https://demo-blinks.vercel.app/donate-sol` directly
 - [ ] Can you connect a wallet?
 - [ ] Can you select donation amounts?
 - [ ] Does confirming work?

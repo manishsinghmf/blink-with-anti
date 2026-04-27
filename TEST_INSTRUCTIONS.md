@@ -4,7 +4,7 @@
 
 **Primary Share URL** (use this):
 ```
-https://blink-with-anti.vercel.app/donate-sol
+https://demo-blinks.vercel.app/donate-sol
 ```
 
 This URL now:
@@ -14,7 +14,7 @@ This URL now:
 
 **Alternative** (API-only):
 ```
-https://blink-with-anti.vercel.app/api/donate
+https://demo-blinks.vercel.app/api/donate
 ```
 
 ---
@@ -33,7 +33,7 @@ X.com → Press F12 → Go to "Console" tab
 
 ### 3. Paste this URL on X.com
 ```
-https://blink-with-anti.vercel.app/donate-sol
+https://demo-blinks.vercel.app/donate-sol
 ```
 
 ### 4. Watch the Console
@@ -41,8 +41,8 @@ You should see messages like:
 ```
 [Blink Unfurler] 🚀 Starting Twitter observer...
 [Blink Unfurler] ✅ Twitter observer active...
-[Blink Unfurler] Found Blink URL: https://blink-with-anti.vercel.app/donate-sol
-[Blink Unfurler] ✅ Verified as Blink: https://blink-with-anti.vercel.app/donate-sol
+[Blink Unfurler] Found Blink URL: https://demo-blinks.vercel.app/donate-sol
+[Blink Unfurler] ✅ Verified as Blink: https://demo-blinks.vercel.app/donate-sol
 ```
 
 ### 5. What Should Happen
@@ -57,19 +57,19 @@ After pasting and waiting 2-3 seconds, you should see:
 
 ### `/donate-sol` - HTML Page ✓
 ```bash
-curl https://blink-with-anti.vercel.app/donate-sol
+curl https://demo-blinks.vercel.app/donate-sol
 # Returns: HTML with OG tags + Solana Action metadata
 ```
 
 ### `/api/donate` - Pure Action JSON ✓
 ```bash
-curl https://blink-with-anti.vercel.app/api/donate
+curl https://demo-blinks.vercel.app/api/donate
 # Returns: {"type": "action", "title": "Donate SOL", ...}
 ```
 
 ### `/api/actions/donate-sol` - Transaction Handler ✓
 ```bash
-curl https://blink-with-anti.vercel.app/api/actions/donate-sol?amount=0.1
+curl https://demo-blinks.vercel.app/api/actions/donate-sol?amount=0.1
 # Returns: {"type": "action", "links": {...}}
 ```
 

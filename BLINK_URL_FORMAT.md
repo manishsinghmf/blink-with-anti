@@ -4,7 +4,7 @@
 
 You were sharing:
 ```
-https://blink-with-anti.vercel.app/donate-sol
+https://demo-blinks.vercel.app/donate-sol
 ```
 
 **But X expects Blinks to follow the official Solana Actions spec:**
@@ -23,12 +23,12 @@ We now have a **Blink Client** at `/blink` that accepts the `?action=` parameter
 **Share this on X.com (or anywhere):**
 
 ```
-https://blink-with-anti.vercel.app/blink?action=solana-action%3Ahttps%3A%2F%2Fblink-with-anti.vercel.app%2Fapi%2Fdonate
+https://demo-blinks.vercel.app/blink?action=solana-action%3Ahttps%3A%2F%2Fdemo-blinks.vercel.app%2Fapi%2Fdonate
 ```
 
 **What this URL contains (decoded):**
 ```
-https://blink-with-anti.vercel.app/blink?action=solana-action://https://blink-with-anti.vercel.app/api/donate
+https://demo-blinks.vercel.app/blink?action=solana-action://https://demo-blinks.vercel.app/api/donate
 ```
 
 ---
@@ -38,10 +38,10 @@ https://blink-with-anti.vercel.app/blink?action=solana-action://https://blink-wi
 ### **URL Structure Breakdown**
 
 ```
-https://blink-with-anti.vercel.app/blink
+https://demo-blinks.vercel.app/blink
         ↑ Blink client (recognizes ?action=)
         
-        ?action=solana-action%3Ahttps%3A%2F%2Fblink-with-anti.vercel.app%2Fapi%2Fdonate
+        ?action=solana-action%3Ahttps%3A%2F%2Fdemo-blinks.vercel.app%2Fapi%2Fdonate
          ↑ Required parameter pointing to your action endpoint
 ```
 
@@ -59,7 +59,7 @@ https://blink-with-anti.vercel.app/blink
 2. Create a new post
 3. Paste the full URL:
    ```
-   https://blink-with-anti.vercel.app/blink?action=solana-action%3Ahttps%3A%2F%2Fblink-with-anti.vercel.app%2Fapi%2Fdonate
+   https://demo-blinks.vercel.app/blink?action=solana-action%3Ahttps%3A%2F%2Fdemo-blinks.vercel.app%2Fapi%2Fdonate
    ```
 
 ### **Step 3: Watch for Unfurling**
@@ -89,12 +89,12 @@ If you create other actions, just change the action URL:
 
 ### **Example: Different amount**
 ```
-https://blink-with-anti.vercel.app/blink?action=solana-action%3Ahttps%3A%2F%2Fblink-with-anti.vercel.app%2Fapi%2Fdonate%3Famount%3D1
+https://demo-blinks.vercel.app/blink?action=solana-action%3Ahttps%3A%2F%2Fdemo-blinks.vercel.app%2Fapi%2Fdonate%3Famount%3D1
 ```
 
 ### **Example: Using direct API endpoint**
 ```
-https://blink-with-anti.vercel.app/blink?action=solana-action%3Ahttps%3A%2F%2Fblink-with-anti.vercel.app%2Fapi%2Fdonate
+https://demo-blinks.vercel.app/blink?action=solana-action%3Ahttps%3A%2F%2Fdemo-blinks.vercel.app%2Fapi%2Fdonate
 ```
 
 ---
@@ -145,12 +145,12 @@ https://blink-with-anti.vercel.app/blink?action=solana-action%3Ahttps%3A%2F%2Fbl
 
 **Before (Not working):**
 ```
-https://blink-with-anti.vercel.app/donate-sol
+https://demo-blinks.vercel.app/donate-sol
 ```
 
 **Now (Working, follows spec):**
 ```
-https://blink-with-anti.vercel.app/blink?action=solana-action%3Ahttps%3A%2F%2Fblink-with-anti.vercel.app%2Fapi%2Fdonate
+https://demo-blinks.vercel.app/blink?action=solana-action%3Ahttps%3A%2F%2Fdemo-blinks.vercel.app%2Fapi%2Fdonate
 ```
 
 **Why?**

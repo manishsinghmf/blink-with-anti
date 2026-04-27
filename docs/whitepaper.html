@@ -1,0 +1,559 @@
+<h1 id="demo-blink-app-technical-whitepaper">Demo Blink App: Technical
+Whitepaper</h1>
+<p><strong>Version:</strong> 1.0<br />
+<strong>Date:</strong> April 24, 2026<br />
+<strong>Project:</strong> Demo Blink App<br />
+<strong>Status:</strong> Implemented reference system</p>
+<hr />
+<h2 id="executive-summary">Executive Summary</h2>
+<p>Demo Blink App is a working reference implementation that reduces the
+gap between seeing a Solana action on social media and executing that
+action from a wallet. The system combines a Blink provider, a shareable
+donation page, a Blink client route, and a Chrome extension that unfurls
+supported links directly inside <code>x.com</code>.</p>
+<p>The implementation demonstrates a full end-to-end flow:</p>
+<ol type="1">
+<li>A user shares a human-friendly URL such as
+<code>/donate-sol</code></li>
+<li>X.com displays the link in a post or DM</li>
+<li>The extension resolves the URL into a Solana Action endpoint</li>
+<li>Blink metadata is fetched and rendered inline</li>
+<li>The user connects Phantom or Backpack</li>
+<li>The backend returns an unsigned Solana transaction</li>
+<li>The wallet signs locally</li>
+<li>The extension broadcasts and confirms on Solana Devnet</li>
+</ol>
+<p>This project exists because native social unfurling for Blinks is
+still constrained by registry trust and platform support. In practice,
+registry-backed X.com unfurling works best for verified or trusted
+Blinks. Blink App adds a controlled extension-based unfurl path so the
+product remains usable even when a Blink is not yet natively surfaced by
+the platform.</p>
+<hr />
+<h2 id="problem-statement">1. Problem Statement</h2>
+<h3 id="the-social-to-transaction-gap">1.1 The Social-to-Transaction
+Gap</h3>
+<p>Blockchain transactions are still operationally heavy for users who
+discover an action in a social feed. A simple donation usually
+requires:</p>
+<p><code>see post -&gt; copy address -&gt; open wallet -&gt; paste address -&gt; enter amount -&gt; review -&gt; sign -&gt; return</code></p>
+<p>This creates several forms of friction:</p>
+<ul>
+<li>context switching between X, wallet, and confirmation surfaces</li>
+<li>address copy and paste risk</li>
+<li>poor discoverability of on-chain actions</li>
+<li>reduced conversion on mobile and casual traffic</li>
+<li>low trust when a link cannot be clearly classified as safe</li>
+</ul>
+<h3 id="why-this-matters">1.2 Why This Matters</h3>
+<p>For creators, communities, and campaigns, the user intent already
+exists when the post is seen. The drop-off happens during execution. If
+the action can be rendered where the user already is, conversion
+improves and cognitive overhead drops.</p>
+<h3 id="why-existing-solutions-are-incomplete">1.3 Why Existing
+Solutions Are Incomplete</h3>
+<p>Traditional alternatives do not solve the full problem:</p>
+<ul>
+<li>wallet address sharing still requires manual entry</li>
+<li>QR codes are not native to social timelines</li>
+<li>custodial payment flows compromise self-custody</li>
+<li>bespoke in-app integrations do not generalize across wallets and
+clients</li>
+<li>native Blink unfurling depends on ecosystem support and trust
+registration</li>
+</ul>
+<hr />
+<h2 id="solution-overview">2. Solution Overview</h2>
+<p>Blink App solves this by combining four pieces:</p>
+<ul>
+<li>a <strong>share URL</strong> at <code>/donate-sol</code></li>
+<li>an <strong>action discovery layer</strong> via
+<code>/actions.json</code> and <code>solana:action:apiUrl</code></li>
+<li>a <strong>Blink action API</strong> at
+<code>/api/actions/donate-sol</code></li>
+<li>a <strong>Chrome extension</strong> that unfurls eligible links
+inline on <code>x.com</code></li>
+</ul>
+<p>The result is a non-custodial donation flow that works both as a
+standalone Blink experience and as an embedded social interaction.</p>
+<h3 id="core-user-experience">2.1 Core User Experience</h3>
+<p>From the user’s perspective the system behaves like this:</p>
+<ol type="1">
+<li>Someone posts
+<code>https://demo-blinks.vercel.app/donate-sol</code></li>
+<li>The extension detects the link in the X.com DOM</li>
+<li>The extension resolves the final target URL, including
+<code>t.co</code> redirects</li>
+<li>It discovers the action URL through one of the supported resolution
+paths</li>
+<li>It checks the Dialect/Blinks registry security state</li>
+<li>It mounts an inline Blink UI inside the post</li>
+<li>The user picks a preset amount or enters a custom amount</li>
+<li>Phantom or Backpack signs the transaction</li>
+<li>The extension sends and confirms the transaction on Solana
+Devnet</li>
+</ol>
+<h3 id="what-this-project-demonstrates">2.2 What This Project
+Demonstrates</h3>
+<p>This repository is not just a mock UI. It demonstrates:</p>
+<ul>
+<li>standards-based Blink metadata</li>
+<li>action URL discovery via multiple strategies</li>
+<li>trust filtering before render</li>
+<li>wallet access from a Chrome extension through a page bridge</li>
+<li>unsigned transaction construction on the server</li>
+<li>client-side signing only</li>
+<li>broadcast, confirmation, and friendly error handling</li>
+</ul>
+<hr />
+<h2 id="implemented-system-components">3. Implemented System
+Components</h2>
+<h3 id="share-page">3.1 Share Page</h3>
+<p><strong>Route:</strong> <code>/donate-sol</code></p>
+<p>This is the URL intended for people to share. It is human-readable
+and social-friendly. The page includes:</p>
+<ul>
+<li>Open Graph metadata</li>
+<li>a <code>solana:action:apiUrl</code> meta tag</li>
+<li>a browser-accessible donation experience</li>
+</ul>
+<p>This page acts as the social entry point for the unfurling flow.</p>
+<h3 id="blink-resolution-endpoint">3.2 Blink Resolution Endpoint</h3>
+<p><strong>Route:</strong> <code>/actions.json</code></p>
+<p>This endpoint maps friendly website paths to Solana Action API
+endpoints. It allows a Blink client or extension to transform a URL like
+<code>/donate-sol</code> into <code>/api/actions/donate-sol</code>.</p>
+<p>This is important because users share website URLs, not raw API
+URLs.</p>
+<h3 id="action-metadata-endpoint">3.3 Action Metadata Endpoint</h3>
+<p><strong>Route:</strong> <code>GET /api/actions/donate-sol</code></p>
+<p>This endpoint returns Blink metadata including:</p>
+<ul>
+<li><code>type: "action"</code></li>
+<li>title</li>
+<li>description</li>
+<li>icon</li>
+<li>preset donation actions</li>
+<li>custom amount support</li>
+</ul>
+<p>The metadata is what the extension renders into the timeline as an
+interactive Blink card.</p>
+<h3 id="transaction-construction-endpoint">3.4 Transaction Construction
+Endpoint</h3>
+<p><strong>Route:</strong> <code>POST /api/actions/donate-sol</code></p>
+<p>This endpoint:</p>
+<ul>
+<li>accepts the user wallet public key</li>
+<li>accepts the requested donation amount</li>
+<li>validates the request</li>
+<li>checks balance and estimated fee</li>
+<li>builds an unsigned Solana transfer transaction</li>
+<li>returns the serialized transaction to the client</li>
+</ul>
+<p>The server never signs on behalf of the user.</p>
+<h3 id="blink-client-route">3.5 Blink Client Route</h3>
+<p><strong>Route:</strong> <code>/blink</code></p>
+<p>This route supports a standard Blink-client style flow where an
+<code>?action=</code> parameter can be supplied and rendered directly in
+the app. It complements the social unfurl path and provides a direct
+fallback entry point for testing and compatibility.</p>
+<h3 id="chrome-extension">3.6 Chrome Extension</h3>
+<p><strong>Primary file:</strong>
+<code>chrome-extension/src/contentScript.ts</code></p>
+<p>The extension is the key integration layer for X.com. It:</p>
+<ul>
+<li>scans tweets and messages for candidate links</li>
+<li>resolves <code>t.co</code> short links</li>
+<li>performs Blink discovery</li>
+<li>checks trust/security state</li>
+<li>mounts the Blink component inline</li>
+<li>connects to wallet providers</li>
+<li>signs, sends, and confirms transactions</li>
+</ul>
+<h3 id="wallet-bridge">3.7 Wallet Bridge</h3>
+<p><strong>Primary file:</strong>
+<code>chrome-extension/src/pageWalletBridge.ts</code></p>
+<p>Chrome content scripts run in an isolated execution world. Phantom
+and Backpack inject providers into the page world. To bridge that
+boundary, this project injects a page-level script and communicates
+through <code>window.postMessage</code>.</p>
+<p>The bridge supports:</p>
+<ul>
+<li>provider detection</li>
+<li>wallet connect</li>
+<li>transaction signing</li>
+<li>message signing</li>
+</ul>
+<hr />
+<h2 id="architecture">4. Architecture</h2>
+<h3 id="high-level-architecture">4.1 High-Level Architecture</h3>
+<pre class="text"><code>User
+  -&gt; X.com timeline / DM
+  -&gt; Chrome extension content script
+  -&gt; Page wallet bridge
+  -&gt; Phantom / Backpack
+
+Chrome extension
+  -&gt; Dialect/Blinks registry checks
+  -&gt; /actions.json
+  -&gt; /donate-sol metadata page
+  -&gt; /api/actions/donate-sol
+
+Backend
+  -&gt; Solana Devnet RPC</code></pre>
+<h3 id="layered-responsibilities">4.2 Layered Responsibilities</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Layer</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Social surface</td>
+<td>Hosts the shared URL in timeline or DM</td>
+</tr>
+<tr class="even">
+<td>Extension layer</td>
+<td>Detects, resolves, classifies, and renders Blinks</td>
+</tr>
+<tr class="odd">
+<td>Resolution layer</td>
+<td>Maps shared URLs to action endpoints</td>
+</tr>
+<tr class="even">
+<td>Provider layer</td>
+<td>Returns metadata and unsigned transactions</td>
+</tr>
+<tr class="odd">
+<td>Wallet layer</td>
+<td>Connects and signs locally</td>
+</tr>
+<tr class="even">
+<td>Settlement layer</td>
+<td>Broadcasts and confirms on Solana Devnet</td>
+</tr>
+</tbody>
+</table>
+<h3 id="resolution-strategies">4.3 Resolution Strategies</h3>
+<p>The extension supports three resolution strategies, in this
+order:</p>
+<ol type="1">
+<li><p><strong>Direct action URL</strong><br />
+If the shared URL already returns a valid action payload, it can be used
+directly.</p></li>
+<li><p><strong><code>/actions.json</code> mapping</strong><br />
+The extension requests <code>/actions.json</code> and maps a share URL
+to the matching action endpoint.</p></li>
+<li><p><strong>Page metadata fallback</strong><br />
+The extension reads <code>solana:action:apiUrl</code> from page metadata
+when direct mapping is not enough.</p></li>
+</ol>
+<p>This layered approach improves resilience and allows user-friendly
+links to resolve into machine-friendly action endpoints.</p>
+<hr />
+<h2 id="trust-registry-and-security-model">5. Trust, Registry, and
+Security Model</h2>
+<h3 id="registry-reality-on-x.com">5.1 Registry Reality on X.com</h3>
+<p>One of the important ecosystem constraints is that Blink rendering on
+X.com is not simply a matter of publishing a valid endpoint. Trust
+classification matters.</p>
+<p>In practical terms:</p>
+<ul>
+<li>Dialect/Blinks registry data is used to classify websites and action
+URLs</li>
+<li>native or registry-backed unfurling is strongest for verified or
+trusted Blinks</li>
+<li>untrusted or malicious links must not be rendered blindly</li>
+</ul>
+<p>This is why this Blink App includes explicit trust checks before
+mounting preview content.</p>
+<h3 id="security-states">5.2 Security States</h3>
+<p>The project treats link safety using three states:</p>
+<ul>
+<li><code>trusted</code></li>
+<li><code>unknown</code></li>
+<li><code>malicious</code></li>
+</ul>
+<p>For allowlisted custom preview flows, the extension checks both:</p>
+<ul>
+<li>the <strong>website state</strong></li>
+<li>the <strong>action state</strong></li>
+</ul>
+<p>If either state is malicious, the preview is blocked.</p>
+<h3 id="trust-policy-modes">5.3 Trust Policy Modes</h3>
+<p>The Blink ecosystem logic used by the extension supports three trust
+policy levels:</p>
+<table>
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 32%" />
+<col style="width: 46%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Mode</th>
+<th>Meaning</th>
+<th>Typical use</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>trusted-only</code></td>
+<td>Only trusted / verified Blinks are rendered</td>
+<td>strict production posture</td>
+</tr>
+<tr class="even">
+<td><code>non-malicious</code></td>
+<td>Trusted and unknown are allowed, malicious is blocked</td>
+<td>balanced default</td>
+</tr>
+<tr class="odd">
+<td><code>all</code></td>
+<td>Everything can be rendered</td>
+<td>debugging or tightly controlled environments</td>
+</tr>
+</tbody>
+</table>
+<h3 id="how-this-repo-uses-those-modes">5.4 How This Repo Uses Those
+Modes</h3>
+<p>This repository uses the modes carefully:</p>
+<ul>
+<li>the standard Dialect Twitter observer is initialized with
+<code>securityLevel: "non-malicious"</code></li>
+<li>the custom preview path blocks malicious websites and malicious
+actions before mounting</li>
+<li>the mounted Blink component is rendered with
+<code>securityLevel: "all"</code> only after those prechecks have
+already passed</li>
+</ul>
+<p>That combination gives a practical developer workflow without
+disabling security classification entirely.</p>
+<h3 id="extension-unfurl-options">5.5 Extension Unfurl Options</h3>
+<p>From a product and operator perspective, the extension is designed
+around three unfurl options:</p>
+<ul>
+<li><strong>Trusted only</strong></li>
+<li><strong>Non-malicious</strong></li>
+<li><strong>All</strong></li>
+</ul>
+<p>These correspond directly to the trust policy model above. For this
+implementation, the important operational behavior is that the project
+does not blindly unfurl arbitrary third-party links. It favors:</p>
+<ul>
+<li>verified or trusted registry-backed links when possible</li>
+<li>controlled preview for allowlisted hosts</li>
+<li>hard blocking for malicious classifications</li>
+</ul>
+<h3 id="host-allowlist">5.6 Host Allowlist</h3>
+<p>The custom preview path is intentionally limited to an allowlist,
+including local and deployment hosts such as:</p>
+<ul>
+<li><code>demo-blinks.vercel.app</code></li>
+<li><code>localhost:3000</code></li>
+<li><code>127.0.0.1:3000</code></li>
+</ul>
+<p>This reduces the blast radius of preview behavior and makes the
+extension safer during development and demos.</p>
+<hr />
+<h2 id="detailed-execution-flow">6. Detailed Execution Flow</h2>
+<h3 id="discovery-and-resolution">6.1 Discovery and Resolution</h3>
+<ol type="1">
+<li>The extension scans the X.com DOM for candidate anchors</li>
+<li>If the link is a <code>t.co</code> short link, it resolves the final
+target</li>
+<li>It checks whether the host is allowlisted for custom preview
+logic</li>
+<li>It queries registry-derived website security state</li>
+<li>It tries direct action discovery</li>
+<li>If needed, it tries <code>/actions.json</code></li>
+<li>If needed, it falls back to page metadata</li>
+<li>It checks the action security state</li>
+<li>It fetches Blink metadata and mounts the UI</li>
+</ol>
+<h3 id="wallet-and-transaction-flow">6.2 Wallet and Transaction
+Flow</h3>
+<ol type="1">
+<li>The user clicks a donation action</li>
+<li>The extension requests provider information from the page
+bridge</li>
+<li>Phantom or Backpack connects if needed</li>
+<li>The extension calls the action <code>POST</code> endpoint with
+amount and account</li>
+<li>The backend returns an unsigned transaction</li>
+<li>The wallet signs the transaction locally</li>
+<li>The extension submits the signed transaction via RPC</li>
+<li>The extension confirms the transaction and updates UI state</li>
+</ol>
+<h3 id="error-handling">6.3 Error Handling</h3>
+<p>The implementation includes user-focused handling for:</p>
+<ul>
+<li>missing wallet provider</li>
+<li>wallet rejection</li>
+<li>invalid amount</li>
+<li>invalid account</li>
+<li>insufficient SOL balance</li>
+<li>duplicate transaction submission</li>
+<li>Solana simulation and send failures</li>
+</ul>
+<p>An important implemented improvement is duplicate-send handling: if a
+signed transaction has already been processed, the extension reuses the
+known signature instead of surfacing a false hard failure.</p>
+<hr />
+<h2 id="non-custodial-security-properties">7. Non-Custodial Security
+Properties</h2>
+<p>This Blink App preserves the key property that makes Blinks
+operationally attractive: the backend never holds user funds or private
+keys.</p>
+<h3 id="what-happens-on-the-server">7.1 What Happens on the Server</h3>
+<p>The server may:</p>
+<ul>
+<li>validate input</li>
+<li>read chain state</li>
+<li>estimate fees</li>
+<li>build unsigned transactions</li>
+</ul>
+<h3 id="what-never-happens-on-the-server">7.2 What Never Happens on the
+Server</h3>
+<p>The server does not:</p>
+<ul>
+<li>access private keys</li>
+<li>sign transactions for the user</li>
+<li>custody user assets</li>
+</ul>
+<h3 id="what-happens-in-the-wallet">7.3 What Happens in the Wallet</h3>
+<p>The wallet:</p>
+<ul>
+<li>exposes the public key</li>
+<li>shows connect prompts</li>
+<li>shows signature approval UI</li>
+<li>signs transactions locally</li>
+</ul>
+<p>This preserves user custody while still enabling an embedded social
+flow.</p>
+<hr />
+<h2 id="problem-solution-mapping">8. Problem-Solution Mapping</h2>
+<table>
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 78%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Problem</th>
+<th>Implemented Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Social discovery does not convert to action</td>
+<td>Inline X.com unfurling via extension</td>
+</tr>
+<tr class="even">
+<td>Friendly URLs are not action endpoints</td>
+<td><code>/actions.json</code> and metadata-based resolution</td>
+</tr>
+<tr class="odd">
+<td>Wallet provider inaccessible from content script</td>
+<td>page-context wallet bridge</td>
+</tr>
+<tr class="even">
+<td>Unsafe links should not be rendered</td>
+<td>registry checks plus allowlist plus trust modes</td>
+</tr>
+<tr class="odd">
+<td>Users need fast donation choices</td>
+<td>preset amounts and custom amount input</td>
+</tr>
+<tr class="even">
+<td>Transaction failure messages are confusing</td>
+<td>friendly parsing and diagnostic logging</td>
+</tr>
+<tr class="odd">
+<td>Duplicate submissions can appear as failures</td>
+<td>signed signature reuse on already-processed transactions</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="why-the-architecture-matters">9. Why the Architecture
+Matters</h2>
+<p>This architecture is valuable because it is realistic, modular, and
+portable.</p>
+<h3 id="realistic">9.1 Realistic</h3>
+<p>It deals with actual platform constraints:</p>
+<ul>
+<li>X.com DOM volatility</li>
+<li><code>t.co</code> redirection</li>
+<li>wallet provider isolation in Chrome extensions</li>
+<li>registry trust classification</li>
+<li>incomplete native Blink support</li>
+</ul>
+<h3 id="modular">9.2 Modular</h3>
+<p>Each part can evolve independently:</p>
+<ul>
+<li>the share page can change without changing the action API</li>
+<li>the extension can change discovery rules without changing the
+backend</li>
+<li>the wallet bridge can support more providers over time</li>
+<li>the action API can expand beyond donations</li>
+</ul>
+<h3 id="portable">9.3 Portable</h3>
+<p>The same action API can be consumed by:</p>
+<ul>
+<li>the Chrome extension</li>
+<li>the <code>/blink</code> client route</li>
+<li>future wallet integrations</li>
+<li>future native social clients</li>
+</ul>
+<hr />
+<h2 id="current-limitations">10. Current Limitations</h2>
+<p>This project is production-shaped, but still intentionally scoped as
+a reference implementation.</p>
+<p>Current limitations include:</p>
+<ul>
+<li>Solana Devnet only</li>
+<li>focused on a single donation use case</li>
+<li>X.com relies on an extension rather than native platform
+support</li>
+<li>trust posture depends partly on external registry
+classification</li>
+<li>custom preview is intentionally restricted to allowlisted hosts</li>
+</ul>
+<p>These are acceptable constraints for a reference architecture and
+demo system.</p>
+<hr />
+<h2 id="future-directions">11. Future Directions</h2>
+<p>Natural next steps include:</p>
+<ul>
+<li>mainnet support</li>
+<li>multiple Blink actions beyond donations</li>
+<li>admin-configurable trust mode selection in the extension UI</li>
+<li>richer analytics around unfurl conversion</li>
+<li>support for additional wallet providers</li>
+<li>deeper compatibility with native Blink clients as ecosystem support
+improves</li>
+</ul>
+<hr />
+<h2 id="conclusion">12. Conclusion</h2>
+<p>This Blink App shows that the core Blink promise is viable today when
+supported by the right infrastructure around it. The project
+demonstrates more than a donation page; it demonstrates a practical
+architecture for resolving, classifying, rendering, signing, and
+settling blockchain actions from inside a social context.</p>
+<p>Most importantly, it addresses the real-world gap between standards
+compliance and user-visible social execution. Dialect registry trust,
+X.com rendering behavior, wallet isolation, and URL resolution are not
+theoretical concerns in this system; they are implemented concerns with
+implemented answers.</p>
+<p>The result is a complete reference flow built around:</p>
+<ul>
+<li>a shareable social URL</li>
+<li>standards-aligned action endpoints</li>
+<li>secure trust filtering</li>
+<li>inline unfurling on X.com</li>
+<li>non-custodial wallet signing</li>
+<li>confirmed on-chain execution</li>
+</ul>
+<p>That combination is the central contribution of this repository.</p>

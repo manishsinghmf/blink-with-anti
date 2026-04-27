@@ -118,7 +118,7 @@ The most productive next step would be to **deploy to Vercel** so the blink has 
 
 ## 9. Deployed to Vercel, X.com Unfurling, Dialect Deep Dive
 **What you asked:**
-1. You deployed the app to Vercel (`blink-with-anti.vercel.app`) and confirmed the headless API returns a valid `preview` response.
+1. You deployed the app to Vercel (`demo-blinks.vercel.app`) and confirmed the headless API returns a valid `preview` response.
 2. But when you posted the link on X.com, it did **not unfurl** into the interactive Blink UI.
 3. You wanted to understand what Dialect actually does, its relationship with Solana Blinks, and why it is legitimate.
 4. You wanted a review of Dialect's UI Components and the Standard Blinks Library (SBL).
@@ -258,7 +258,7 @@ Dialect provides `setupTwitterObserver()` from `@dialectlabs/blinks/ext/twitter`
 
 **The shareable URL format would be:**
 ```
-https://blink-with-anti.vercel.app/api/actions/donate-sol?amount=0.1
+https://demo-blinks.vercel.app/api/actions/donate-sol?amount=0.1
 ```
 When someone with our extension (or Phantom/Backpack) sees this URL on X.com, it unfurls into the donate button UI.
 
@@ -270,7 +270,7 @@ When someone with our extension (or Phantom/Backpack) sees this URL on X.com, it
 ## 11. Clarification: Blink URL vs Action URL & Phantom Unfurling
 
 **What you asked:**
-Is `https://blink-with-anti.vercel.app/api/actions/donate-sol?amount=0.1` the blink URL? How does unfurling work? You have Phantom installed — what else do you need?
+Is `https://demo-blinks.vercel.app/api/actions/donate-sol?amount=0.1` the blink URL? How does unfurling work? You have Phantom installed — what else do you need?
 
 ### Blink URL vs Action URL — They Are Different!
 
@@ -278,12 +278,12 @@ There are **two different URLs** in the blinks ecosystem:
 
 | Type | URL | Purpose |
 |------|-----|---------|
-| **Action API URL** | `https://blink-with-anti.vercel.app/api/actions/donate-sol` | The raw REST API endpoint (GET returns metadata, POST returns transaction). This is the backend. |
-| **Blink URL (Website URL)** | `https://blink-with-anti.vercel.app/donate-sol` | The URL you **share** with people. This is just a normal-looking URL. |
+| **Action API URL** | `https://demo-blinks.vercel.app/api/actions/donate-sol` | The raw REST API endpoint (GET returns metadata, POST returns transaction). This is the backend. |
+| **Blink URL (Website URL)** | `https://demo-blinks.vercel.app/donate-sol` | The URL you **share** with people. This is just a normal-looking URL. |
 
 ### How `actions.json` Connects Them
 
-Your `actions.json` (at `https://blink-with-anti.vercel.app/actions.json`) contains:
+Your `actions.json` (at `https://demo-blinks.vercel.app/actions.json`) contains:
 ```json
 {
   "rules": [
@@ -292,8 +292,8 @@ Your `actions.json` (at `https://blink-with-anti.vercel.app/actions.json`) conta
 }
 ```
 
-This means: when a blink client (like Phantom) sees the URL `https://blink-with-anti.vercel.app/donate-sol`, it:
-1. Fetches `https://blink-with-anti.vercel.app/actions.json`
+This means: when a blink client (like Phantom) sees the URL `https://demo-blinks.vercel.app/donate-sol`, it:
+1. Fetches `https://demo-blinks.vercel.app/actions.json`
 2. Matches `/donate-sol` against the rule `/*`
 3. Maps it to `/api/actions/donate-sol`
 4. Calls `GET /api/actions/donate-sol` to get the UI metadata
@@ -303,7 +303,7 @@ This means: when a blink client (like Phantom) sees the URL `https://blink-with-
 
 **Share this on X.com:**
 ```
-https://blink-with-anti.vercel.app/donate-sol
+https://demo-blinks.vercel.app/donate-sol
 ```
 
 **NOT** the `/api/actions/...` URL. The website URL is what blink clients look for.
@@ -312,7 +312,7 @@ https://blink-with-anti.vercel.app/donate-sol
 
 1. **Enable Blinks in Phantom** — Open Phantom → Settings → scroll to "Experimental Features" or "Blinks" → make sure it's turned ON.
 2. **Your blink must be registered OR Phantom set to show "all"** — Since `dial.to` is down and your blink is unregistered, Phantom may hide it. In Phantom Settings, look for a Blink security setting and set it to show **all blinks** (not just trusted ones).
-3. **Share the correct URL** — Post `https://blink-with-anti.vercel.app/donate-sol` on X.com.
+3. **Share the correct URL** — Post `https://demo-blinks.vercel.app/donate-sol` on X.com.
 4. **The `/donate-sol` page should exist** — Currently, visiting this URL in a browser will show a 404. We should create a fallback page at this route so non-extension users see something useful.
 
 ### What We Need to Change in Code
@@ -350,7 +350,7 @@ There is a **separate, official "Dialect Blinks" Chrome extension** available on
 | 1 | Go to Chrome Web Store and search for **"Dialect Blinks"** | 🔨 Do this |
 | 2 | Install the official Dialect Blinks extension (verify developer is `dialect.to`) | 🔨 Do this |
 | 3 | Make sure Phantom is also installed (for wallet signing) | ✅ Already done |
-| 4 | Go to X.com and post: `https://blink-with-anti.vercel.app/donate-sol` | 🔨 Do this |
+| 4 | Go to X.com and post: `https://demo-blinks.vercel.app/donate-sol` | 🔨 Do this |
 | 5 | The Dialect extension should detect the URL and unfurl it | 🤞 Test this |
 
 ### Will Your Setup Work?
@@ -384,7 +384,7 @@ Build the extension.
 4. Navigate to: `/home/manish/projects/blinks/blink-anti-gravity/chrome-extension/dist`
 5. Click Select/Open
 6. The "Solana Blink Unfurler" extension should appear in the list
-7. Go to X.com and post a tweet containing: `https://blink-with-anti.vercel.app/donate-sol`
+7. Go to X.com and post a tweet containing: `https://demo-blinks.vercel.app/donate-sol`
 8. The extension should detect the URL and unfurl it into the interactive Blink UI
 
 ### Important Notes

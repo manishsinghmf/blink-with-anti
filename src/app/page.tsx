@@ -18,20 +18,32 @@ import {
 import "@dialectlabs/blinks/index.css";
 import "@solana/wallet-adapter-react-ui/styles.css";
 
-const ACTION_URL =
-  typeof window !== "undefined"
-    ? `${window.location.origin}/api/actions/donate-sol`
-    : "http://localhost:3000/api/actions/donate-sol";
 const RPC_URL = "https://api.devnet.solana.com";
-// Smart URL: serves HTML to browsers, JSON to extensions/bots
-const SHARE_URL =
-  typeof window !== "undefined"
-    ? `${window.location.origin}/donate-sol`
-    : "https://blink-with-anti.vercel.app/donate-sol";
 
-function BlinkPreview() {
+type BlinkMode = "donate" | "send";
+
+const BLINK_CONFIG: Record<
+  BlinkMode,
+  { label: string; actionPath: string; sharePath: string; description: string }
+> = {
+  donate: {
+    label: "Donate SOL",
+    actionPath: "/api/actions/donate-sol",
+    sharePath: "/donate-sol",
+    description: "Visitors can connect their wallet and donate SOL instantly.",
+  },
+  send: {
+    label: "Send SOL",
+    actionPath: "/api/actions/send-sol",
+    sharePath: "/send-sol",
+    description:
+      "Visitors can connect their wallet, enter recipient, and transfer SOL.",
+  },
+};
+
+function BlinkPreview({ actionUrl }: { actionUrl: string }) {
   const { adapter } = useBlinkSolanaWalletAdapter(RPC_URL);
-  const { blink } = useBlink({ url: ACTION_URL });
+  const { blink } = useBlink({ url: actionUrl });
 
   if (!blink) {
     return (
@@ -46,17 +58,17 @@ function BlinkPreview() {
     <Blink
       blink={blink}
       adapter={adapter as BlinkAdapter}
-      websiteText="blink-with-anti.vercel.app"
+      websiteText="demo-blinks.vercel.app"
       stylePreset="x-dark"
     />
   );
 }
 
-function CopyButton() {
+function CopyButton({ shareUrl }: { shareUrl: string }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(SHARE_URL).then(() => {
+    navigator.clipboard.writeText(shareUrl).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
@@ -105,6 +117,16 @@ function CopyButton() {
 
 export default function Home() {
   const wallets = useMemo(() => [], []);
+  const [mode, setMode] = useState<BlinkMode>("donate");
+  const current = BLINK_CONFIG[mode];
+  const shareUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}${current.sharePath}`
+      : `https://demo-blinks.vercel.app${current.sharePath}`;
+  const actionUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}${current.actionPath}`
+      : `http://localhost:3000${current.actionPath}`;
 
   return (
     <ConnectionProvider endpoint={RPC_URL}>
@@ -124,7 +146,7 @@ export default function Home() {
                   <span style={styles.titleAccent}>Workspace</span>
                 </h1>
                 <p style={styles.subtitle}>
-                  Your donate blink is live. Share the URL on X, Discord, Telegram — anywhere.
+                  Your donation blink is still live, and send SOL is now available as a second option.
                   <br />
                   Users with the Chrome extension see it unfurl inline.
                 </p>
@@ -135,13 +157,32 @@ export default function Home() {
                 {/* Left: Share card */}
                 <div style={styles.panel}>
                   <h2 style={styles.panelTitle}>📤 Share Your Blink</h2>
-                  <div style={styles.urlBox}>
-                    <code style={styles.urlCode}>{SHARE_URL}</code>
+                  <div style={styles.modeRow}>
+                    <button
+                      onClick={() => setMode("donate")}
+                      style={{
+                        ...styles.modeButton,
+                        ...(mode === "donate" ? styles.modeButtonActive : {}),
+                      }}
+                    >
+                      Donate SOL
+                    </button>
+                    <button
+                      onClick={() => setMode("send")}
+                      style={{
+                        ...styles.modeButton,
+                        ...(mode === "send" ? styles.modeButtonActive : {}),
+                      }}
+                    >
+                      Send SOL
+                    </button>
                   </div>
-                  <CopyButton />
+                  <div style={styles.urlBox}>
+                    <code style={styles.urlCode}>{shareUrl}</code>
+                  </div>
+                  <CopyButton shareUrl={shareUrl} />
                   <p style={styles.panelDesc}>
-                    Share this URL on any platform. Visitors will land on a beautiful
-                    donate page where they can connect their wallet and send SOL.
+                    Share this URL on any platform. {current.description}
                   </p>
 
                   <div style={styles.divider} />
@@ -174,7 +215,7 @@ export default function Home() {
                   <div style={styles.blinkWrapper}>
                     <div style={styles.blinkGlow} />
                     <div style={styles.blinkCard}>
-                      <BlinkPreview />
+                      <BlinkPreview actionUrl={actionUrl} />
                     </div>
                   </div>
                 </div>
@@ -183,7 +224,7 @@ export default function Home() {
               {/* API info */}
               <div style={styles.apiBar}>
                 <span style={styles.apiLabel}>Action API:</span>
-                <code style={styles.apiUrl}>/api/actions/donate-sol</code>
+                <code style={styles.apiUrl}>{current.actionPath}</code>
                 <span style={styles.apiLabel}>Actions JSON:</span>
                 <code style={styles.apiUrl}>/actions.json</code>
               </div>
@@ -300,6 +341,25 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "0.85rem",
     lineHeight: 1.6,
     margin: 0,
+  },
+  modeRow: {
+    display: "flex",
+    gap: "0.5rem",
+  },
+  modeButton: {
+    border: "1px solid rgba(255,255,255,0.15)",
+    borderRadius: 999,
+    padding: "6px 12px",
+    fontSize: "0.78rem",
+    background: "transparent",
+    color: "#a1a1aa",
+    cursor: "pointer",
+    fontWeight: 600,
+  },
+  modeButtonActive: {
+    color: "#fafafa",
+    background: "rgba(139,92,246,0.2)",
+    border: "1px solid rgba(139,92,246,0.5)",
   },
   urlBox: {
     background: "rgba(0,0,0,0.4)",

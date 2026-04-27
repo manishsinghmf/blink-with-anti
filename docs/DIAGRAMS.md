@@ -74,7 +74,7 @@ title Solana Blinks with extension - Sequence Diagram
 
 Note over User,RPC: Phase 1: X Post + Extension Unfurl
 
-User->>X: Open tweet containing https://blink-with-anti.vercel.app/donate-sol
+User->>X: Open tweet containing https://demo-blinks.vercel.app/donate-sol
 Extension->>X: Scan tweet DOM for candidate links
 Extension->>X: Resolve t.co URL if needed
 

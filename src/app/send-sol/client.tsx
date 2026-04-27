@@ -1,11 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import {
-  Blink,
-  useBlink,
-  BlinkAdapter,
-} from "@dialectlabs/blinks";
+import { Blink, useBlink, BlinkAdapter } from "@dialectlabs/blinks";
 import { useBlinkSolanaWalletAdapter } from "@dialectlabs/blinks/hooks/solana";
 import {
   WalletProvider,
@@ -18,7 +14,7 @@ import {
 import "@dialectlabs/blinks/index.css";
 import "@solana/wallet-adapter-react-ui/styles.css";
 
-const ACTION_URL = "https://demo-blinks.vercel.app/api/actions/donate-sol";
+const ACTION_URL = "https://demo-blinks.vercel.app/api/actions/send-sol";
 const RPC_URL = "https://api.devnet.solana.com";
 
 function BlinkCard() {
@@ -47,9 +43,7 @@ function BlinkCard() {
             animation: "spin 0.8s linear infinite",
           }}
         />
-        <p style={{ color: "#a1a1aa", fontSize: "0.9rem" }}>
-          Loading Blink…
-        </p>
+        <p style={{ color: "#a1a1aa", fontSize: "0.9rem" }}>Loading Blink…</p>
       </div>
     );
   }
@@ -64,7 +58,7 @@ function BlinkCard() {
   );
 }
 
-export default function DonatePage() {
+export default function SendPage() {
   const wallets = useMemo(() => [], []);
 
   return (
@@ -72,38 +66,33 @@ export default function DonatePage() {
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
           <div style={styles.page}>
-            {/* Background gradient orbs */}
             <div style={styles.orbTopRight} />
             <div style={styles.orbBottomLeft} />
 
             <main style={styles.main}>
-              {/* Header */}
               <div style={styles.header}>
                 <div style={styles.badge}>
                   <span style={styles.badgeDot} />
                   Solana Devnet
                 </div>
-                <h1 style={styles.title}>Donate SOL</h1>
+                <h1 style={styles.title}>Send SOL</h1>
                 <p style={styles.subtitle}>
-                  Support this project with a quick SOL donation.
+                  Transfer SOL to any recipient wallet.
                   <br />
-                  Connect your wallet, pick an amount, done.
+                  Connect, enter recipient, choose amount, approve.
                 </p>
               </div>
 
-              {/* Wallet button */}
               <div style={styles.walletRow}>
                 <WalletMultiButton />
               </div>
 
-              {/* Blink Card */}
               <div style={styles.cardWrapper}>
                 <div style={styles.card}>
                   <BlinkCard />
                 </div>
               </div>
 
-              {/* Info */}
               <div style={styles.info}>
                 <div style={styles.step}>
                   <div style={styles.stepNumber}>1</div>
@@ -112,48 +101,23 @@ export default function DonatePage() {
                 <div style={styles.divider} />
                 <div style={styles.step}>
                   <div style={styles.stepNumber}>2</div>
-                  <span>Pick an amount (or enter custom)</span>
+                  <span>Enter recipient and amount</span>
                 </div>
                 <div style={styles.divider} />
                 <div style={styles.step}>
                   <div style={styles.stepNumber}>3</div>
-                  <span>Approve the transaction</span>
+                  <span>Approve the transfer</span>
                 </div>
               </div>
-
-              <p style={styles.footer}>
-                Powered by{" "}
-                <a
-                  href="https://docs.dialect.to"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: "#a78bfa", textDecoration: "none" }}
-                >
-                  Dialect Blinks
-                </a>{" "}
-                &amp;{" "}
-                <a
-                  href="https://solana.com/docs/advanced/actions"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: "#a78bfa", textDecoration: "none" }}
-                >
-                  Solana Actions
-                </a>
-              </p>
             </main>
 
-            <style >{`
+            <style>{`
               @keyframes spin {
                 to { transform: rotate(360deg); }
               }
               @keyframes float {
                 0%, 100% { transform: translateY(0px); }
                 50% { transform: translateY(-8px); }
-              }
-              @keyframes pulse-glow {
-                0%, 100% { opacity: 0.25; }
-                50% { opacity: 0.45; }
               }
             `}</style>
           </div>
@@ -173,7 +137,8 @@ const styles = {
     padding: "2rem 1rem",
     position: "relative",
     overflow: "hidden",
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    fontFamily:
+      "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   } as React.CSSProperties,
   orbTopRight: {
     position: "absolute",
@@ -303,11 +268,5 @@ const styles = {
     width: 20,
     height: 1,
     background: "rgba(255,255,255,0.1)",
-  } as React.CSSProperties,
-  footer: {
-    color: "#52525b",
-    fontSize: "0.75rem",
-    textAlign: "center",
-    margin: 0,
   } as React.CSSProperties,
 };

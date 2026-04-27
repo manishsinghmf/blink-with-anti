@@ -26,7 +26,7 @@ There are three important URL types:
 Example:
 
 ```text
-https://blink-with-anti.vercel.app/donate-sol
+https://demo-blinks.vercel.app/donate-sol
 ```
 
 This is the human-friendly page URL. It returns HTML and metadata for sharing.
@@ -42,7 +42,7 @@ Its job is:
 Example:
 
 ```text
-https://blink-with-anti.vercel.app/actions.json
+https://demo-blinks.vercel.app/actions.json
 ```
 
 This is the Solana Actions mapping file. It tells Blink clients how to convert a normal website URL into an Action API URL.
@@ -54,7 +54,7 @@ In this repo it currently maps broad website paths to `/api/actions/*`.
 Example:
 
 ```text
-https://blink-with-anti.vercel.app/api/actions/donate-sol
+https://demo-blinks.vercel.app/api/actions/donate-sol
 ```
 
 This is the real Blink provider endpoint.
@@ -69,7 +69,7 @@ Its job is:
 Suppose a tweet contains:
 
 ```text
-https://blink-with-anti.vercel.app/donate-sol
+https://demo-blinks.vercel.app/donate-sol
 ```
 
 ### Without the extension

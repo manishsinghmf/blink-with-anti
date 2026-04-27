@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     title: "Donate SOL — Solana Blink",
     description:
       "Support the project by donating SOL. Powered by Solana Actions & Dialect Blinks.",
-    url: "https://blink-with-anti.vercel.app/donate-sol",
+    url: "https://demo-blinks.vercel.app/donate-sol",
     images: ["/donate-sol.jpg"],
     type: "website",
   },
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     images: ["/donate-sol.jpg"],
   },
   other: {
-    "solana:action:apiUrl": "https://blink-with-anti.vercel.app/api/actions/donate-sol",
+    "solana:action:apiUrl": "https://demo-blinks.vercel.app/api/actions/donate-sol",
   },
 };
 

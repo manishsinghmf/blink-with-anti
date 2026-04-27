@@ -10,7 +10,7 @@ When you share a URL on X.com:
 3. **For Solana Actions**, X can natively recognize certain patterns and **inject interactive Blink UI directly** in the feed with buttons
 
 **Your Setup:**
-- URL: `https://blink-with-anti.vercel.app/donate-sol`
+- URL: `https://demo-blinks.vercel.app/donate-sol`
 - Returns: HTML page with proper OG meta tags + meta tag pointing to action endpoint
 - OG Image: Beautiful Solana coin donation image
 - Action URL: `solana:action:apiUrl` → points to `/api/actions/donate-sol`
@@ -19,8 +19,8 @@ When you share a URL on X.com:
 ```html
 <meta property="og:title" content="Donate SOL — Solana Blink" />
 <meta property="og:description" content="Support the project..." />
-<meta property="og:image" content="https://blink-with-anti.vercel.app/donate-sol.jpg" />
-<meta name="solana:action:apiUrl" content="https://blink-with-anti.vercel.app/api/actions/donate-sol" />
+<meta property="og:image" content="https://demo-blinks.vercel.app/donate-sol.jpg" />
+<meta name="solana:action:apiUrl" content="https://demo-blinks.vercel.app/api/actions/donate-sol" />
 ```
 
 X.com then:
@@ -54,7 +54,7 @@ For sites/situations where native support doesn't work, the Chrome extension:
 ```
 User shares on X.com
 ↓
-https://blink-with-anti.vercel.app/donate-sol
+https://demo-blinks.vercel.app/donate-sol
 ↓
 ┌─ X.com Crawler ────────────────┐
 │ Fetches the URL for OG meta tags│
@@ -87,7 +87,7 @@ Endpoints:
 
 ### **1. `/donate-sol` - Main Share URL**
 ```
-GET https://blink-with-anti.vercel.app/donate-sol
+GET https://demo-blinks.vercel.app/donate-sol
 
 Returns: HTML page + OG meta tags
 Content-Type: text/html
@@ -101,7 +101,7 @@ Why:
 
 ###  **2. `/api/donate` - Direct Action Endpoint**
 ```
-GET https://blink-with-anti.vercel.app/api/donate
+GET https://demo-blinks.vercel.app/api/donate
 
 Returns: {
   type: "action",
@@ -120,7 +120,7 @@ Why:
 
 ### **3. `/api/actions/donate-sol?amount=X` - Transaction Handler**
 ```
-POST https://blink-with-anti.vercel.app/api/actions/donate-sol?amount=0.1
+POST https://demo-blinks.vercel.app/api/actions/donate-sol?amount=0.1
 
 Body: { account: "pubkey..." }
 
@@ -162,13 +162,13 @@ Why:
 ```
 Test these URLs on X in order:
 
-1. https://blink-with-anti.vercel.app/donate-sol
+1. https://demo-blinks.vercel.app/donate-sol
    (Current - card shows, buttons should appear via extension)
 
-2. solana-actions:https://blink-with-anti.vercel.app/api/donate
+2. solana-actions:https://demo-blinks.vercel.app/api/donate
    (Special protocol - might work natively)
 
-3. https://blink-with-anti.vercel.app/api/donate
+3. https://demo-blinks.vercel.app/api/donate
    (Direct action - clearer signal for extension)
 ```
 
@@ -190,7 +190,7 @@ setupTwitterObserver(adapter);
 ```
 
 **How to improve detection:**
-1. ✓ Already detects URLs with `blink-with-anti.vercel.app`
+1. ✓ Already detects URLs with `demo-blinks.vercel.app`
 2. ✓ Logs when it finds them
 3. ⚠ May need explicit pattern matching for your `/donate-sol` endpoint
 
@@ -201,13 +201,13 @@ setupTwitterObserver(adapter);
 ### **Test 1: Verify Endpoints**
 ```bash
 # Should return HTML with OG tags
-curl -i https://blink-with-anti.vercel.app/donate-sol | head -50
+curl -i https://demo-blinks.vercel.app/donate-sol | head -50
 
 # Should return action JSON
-curl -H "Accept: application/json" https://blink-with-anti.vercel.app/api/donate | jq .
+curl -H "Accept: application/json" https://demo-blinks.vercel.app/api/donate | jq .
 
 # Should return another action variant
-curl -H "Accept: application/json" https://blink-with-anti.vercel.app/api/actions/donate-sol | jq .
+curl -H "Accept: application/json" https://demo-blinks.vercel.app/api/actions/donate-sol | jq .
 ```
 
 ### **Test 2: On X.com Without Extension**
@@ -226,7 +226,7 @@ curl -H "Accept: application/json" https://blink-with-anti.vercel.app/api/action
 6. See if extension detects and unfurls it
 
 ### **Test 4: Visit Page Directly**
-1. Open https://blink-with-anti.vercel.app/donate-sol in browser
+1. Open https://demo-blinks.vercel.app/donate-sol in browser
 2. Should see beautiful interactive Donate page
 3. Connect wallet button works
 4. Can select donation amounts

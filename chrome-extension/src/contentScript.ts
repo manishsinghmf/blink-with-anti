@@ -41,7 +41,7 @@ const BRIDGE_REQUEST_SOURCE = "blink-unfurler-content-script";
 const BRIDGE_RESPONSE_SOURCE = "blink-unfurler-page-bridge";
 const BRIDGE_TIMEOUT_MS = 30000;
 const DEFAULT_PREVIEW_ALLOWED_HOSTS = [
-  "blink-with-anti.vercel.app",
+  "demo-blinks.vercel.app",
   "binksy.vercel.app",
   "localhost:3000",
   "127.0.0.1:3000",

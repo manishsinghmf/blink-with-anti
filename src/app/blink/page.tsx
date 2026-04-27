@@ -9,11 +9,11 @@ export const metadata: Metadata = {
     title: "Solana Blink Client",
     description:
       "Universal Blink client for Solana Actions. Works on X, Discord, and more.",
-    url: "https://blink-with-anti.vercel.app/blink",
+    url: "https://demo-blinks.vercel.app/blink",
     type: "website",
   },
   other: {
-    "solana:action:apiUrl": "https://blink-with-anti.vercel.app/api/actions/donate-sol",
+    "solana:action:apiUrl": "https://demo-blinks.vercel.app/api/actions/donate-sol",
   },
 };
 

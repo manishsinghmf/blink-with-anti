@@ -58,7 +58,7 @@ function BlinkCard({ actionUrl }: { actionUrl: string }) {
     <Blink
       blink={blink}
       adapter={adapter as BlinkAdapter}
-      websiteText="blink-with-anti.vercel.app"
+      websiteText="demo-blinks.vercel.app"
       stylePreset="x-dark"
     />
   );
@@ -102,7 +102,7 @@ function BlinkClientContent() {
               Example:
               <br />
               <code style={{ background: "#27272a", padding: "0.5rem", display: "block", marginTop: "0.5rem", borderRadius: "0.5rem", fontSize: "0.8rem", wordBreak: "break-all" }}>
-                /blink?action=solana-action%3Ahttps%3A%2F%2Fblink-with-anti.vercel.app%2Fapi%2Fdonate
+                /blink?action=solana-action%3Ahttps%3A%2F%2Fdemo-blinks.vercel.app%2Fapi%2Factions%2Fsend-sol
               </code>
             </p>
           </div>
