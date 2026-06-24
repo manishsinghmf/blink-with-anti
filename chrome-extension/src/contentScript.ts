@@ -183,7 +183,17 @@ function ensurePageBridge(): Promise<void> {
 
     const script = document.createElement("script");
     script.id = BRIDGE_SCRIPT_ID;
-    script.src = chrome.runtime.getURL("pageWalletBridge.js");
+    const runtimeUrl = chrome.runtime?.getURL?.("pageWalletBridge.js");
+    if (!runtimeUrl) {
+      reject(
+        new Error(
+          "Chrome extension runtime is unavailable. Reload the Solana Blink Unfurler extension and refresh this X.com tab."
+        )
+      );
+      return;
+    }
+
+    script.src = runtimeUrl;
     script.async = false;
     script.onload = () => {
       pageBridgeReady = true;
