@@ -34,7 +34,8 @@ import {
 } from "@solana/web3.js";
 
 const LOG_PREFIX = "[Blink Unfurler]";
-const RPC_URL = "https://api.devnet.solana.com";
+const RPC_URL =
+  import.meta.env.VITE_SOLANA_RPC_URL ?? "https://api.devnet.solana.com";
 const connection = new Connection(RPC_URL, "confirmed");
 const BRIDGE_SCRIPT_ID = "blink-unfurler-page-wallet-bridge";
 const BRIDGE_REQUEST_SOURCE = "blink-unfurler-content-script";
@@ -46,7 +47,6 @@ const DEFAULT_PREVIEW_ALLOWED_HOSTS = [
   "localhost:3000",
   "127.0.0.1:3000",
 ];
-console.log("env vars", import.meta.env.VITE_PREVIEW_ALLOWED_HOSTS);
 const PREVIEW_ALLOWED_HOSTS = new Set(
   (import.meta.env.VITE_PREVIEW_ALLOWED_HOSTS ?? DEFAULT_PREVIEW_ALLOWED_HOSTS.join(","))
     .split(",")

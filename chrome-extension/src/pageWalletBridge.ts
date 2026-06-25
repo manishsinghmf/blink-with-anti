@@ -27,16 +27,36 @@ type WalletRequest =
       message: string;
     };
 
-function getProvider(): any {
+type SolanaProvider = {
+  isPhantom?: boolean;
+  isBackpack?: boolean;
+  publicKey?: { toString(): string };
+  connect(): Promise<{ publicKey: { toString(): string } }>;
+  signTransaction(
+    transaction: VersionedTransaction
+  ): Promise<VersionedTransaction>;
+  signMessage(message: Uint8Array): Promise<{ signature: Uint8Array }>;
+};
+
+type SolanaWindow = Window & {
+  solana?: SolanaProvider;
+  phantom?: {
+    solana?: SolanaProvider;
+  };
+};
+
+function getProvider(): SolanaProvider | null {
+  const solanaWindow = window as SolanaWindow;
+
   if ("solana" in window) {
-    const provider = (window as any).solana;
+    const provider = solanaWindow.solana;
     if (provider?.isPhantom || provider?.isBackpack || provider?.publicKey) {
       return provider;
     }
   }
 
   if ("phantom" in window) {
-    const phantom = (window as any).phantom;
+    const phantom = solanaWindow.phantom;
     if (phantom?.solana) {
       return phantom.solana;
     }

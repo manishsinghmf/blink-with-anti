@@ -37,13 +37,29 @@ Solana Blink provider with:
 npm install
 ```
 
-2) Run Next.js app:
+2) Create the app environment file:
+
+```bash
+cp .env.example .env
+```
+
+Configure the values as needed:
+
+```env
+NEXT_PUBLIC_APP_URL=https://demo-blinks.vercel.app
+NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
+SOLANA_RPC_URL=https://api.devnet.solana.com
+DONATION_WALLET_ADDRESS=HS7M3zgnFVucMMM5k1a2sPBPjRndfYNW7Ep6eMueCvX4
+SOLANA_ACTION_VERSION=2.4
+```
+
+3) Run Next.js app:
 
 ```bash
 npm run dev
 ```
 
-3) Open app URLs:
+4) Open app URLs:
 
 - Home: `http://localhost:3000/`
 - Donate page: `http://localhost:3000/donate-sol`
@@ -66,7 +82,8 @@ Both action APIs target Solana Devnet and return Solana Action-compatible payloa
 Create `chrome-extension/.env` and configure allowed hosts:
 
 ```env
-VITE_PREVIEW_ALLOWED_HOSTS=demo-blinks.vercel.app,localhost:3000,127.0.0.1:3000
+VITE_PREVIEW_ALLOWED_HOSTS=blink-with-anti.vercel.app,binksy.vercel.app,localhost:3000,127.0.0.1:3000,speckit-blink.vercel.app,demo-blinks.vercel.app
+VITE_SOLANA_RPC_URL=https://api.devnet.solana.com
 ```
 
 You can include multiple hosts separated by commas.

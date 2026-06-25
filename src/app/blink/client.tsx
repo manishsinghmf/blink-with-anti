@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense, useMemo } from "react";
+import { Suspense } from "react";
 import {
   Blink,
   useBlink,
@@ -16,13 +16,12 @@ import {
   WalletModalProvider,
   WalletMultiButton,
 } from "@solana/wallet-adapter-react-ui";
+import { APP_HOST, SEND_ACTION_URL, SOLANA_RPC_URL } from "@/lib/public-config";
 import "@dialectlabs/blinks/index.css";
 import "@solana/wallet-adapter-react-ui/styles.css";
 
-const RPC_URL = "https://api.devnet.solana.com";
-
 function BlinkCard({ actionUrl }: { actionUrl: string }) {
-  const { adapter } = useBlinkSolanaWalletAdapter(RPC_URL);
+  const { adapter } = useBlinkSolanaWalletAdapter(SOLANA_RPC_URL);
   const { blink } = useBlink({ url: actionUrl });
 
   if (!blink) {
@@ -58,7 +57,7 @@ function BlinkCard({ actionUrl }: { actionUrl: string }) {
     <Blink
       blink={blink}
       adapter={adapter as BlinkAdapter}
-      websiteText="demo-blinks.vercel.app"
+      websiteText={APP_HOST}
       stylePreset="x-dark"
     />
   );
@@ -102,7 +101,7 @@ function BlinkClientContent() {
               Example:
               <br />
               <code style={{ background: "#27272a", padding: "0.5rem", display: "block", marginTop: "0.5rem", borderRadius: "0.5rem", fontSize: "0.8rem", wordBreak: "break-all" }}>
-                /blink?action=solana-action%3Ahttps%3A%2F%2Fdemo-blinks.vercel.app%2Fapi%2Factions%2Fsend-sol
+                {`/blink?action=${encodeURIComponent(`solana-action://${SEND_ACTION_URL}`)}`}
               </code>
             </p>
           </div>
@@ -112,7 +111,7 @@ function BlinkClientContent() {
   }
 
   return (
-    <ConnectionProvider endpoint={RPC_URL}>
+    <ConnectionProvider endpoint={SOLANA_RPC_URL}>
       <WalletProvider wallets={[]} autoConnect>
         <WalletModalProvider>
           <div style={styles.page}>

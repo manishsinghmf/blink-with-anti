@@ -1,18 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { APP_URL, DONATE_ACTION_URL } from "@/lib/public-config";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
+  metadataBase: new URL(APP_URL),
   title: "Donate SOL — Solana Blink",
   description:
     "Donate SOL on Solana via a shareable Blink. Click, connect your wallet, and send devnet SOL instantly.",
@@ -20,7 +11,7 @@ export const metadata: Metadata = {
     title: "Donate SOL — Solana Blink",
     description:
       "Support the project by donating SOL. Powered by Solana Actions & Dialect Blinks.",
-    url: "https://demo-blinks.vercel.app/donate-sol",
+    url: `${APP_URL}/donate-sol`,
     images: ["/donate-sol.jpg"],
     type: "website",
   },
@@ -32,7 +23,7 @@ export const metadata: Metadata = {
     images: ["/donate-sol.jpg"],
   },
   other: {
-    "solana:action:apiUrl": "https://demo-blinks.vercel.app/api/actions/donate-sol",
+    "solana:action:apiUrl": DONATE_ACTION_URL,
   },
 };
 
@@ -42,10 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

@@ -1,4 +1,9 @@
 import { Metadata } from "next";
+import {
+  DONATE_ACTION_URL,
+  DONATE_IMAGE_URL,
+  DONATE_PAGE_URL,
+} from "@/lib/public-config";
 import DonatePage from "./client";
 
 
@@ -10,8 +15,8 @@ export const metadata: Metadata = {
     title: "Donate SOL — Solana Blink",
     description:
       "Support the project by donating SOL. Powered by Solana Actions & Dialect Blinks.",
-    url: "https://demo-blinks.vercel.app/donate-sol",
-    images: ["https://demo-blinks.vercel.app/donate-sol.jpg"],
+    url: DONATE_PAGE_URL,
+    images: [DONATE_IMAGE_URL],
     type: "website",
   },
   twitter: {
@@ -19,15 +24,13 @@ export const metadata: Metadata = {
     title: "Donate SOL — Solana Blink",
     description:
       "Support the project by donating SOL. Powered by Solana Actions & Dialect Blinks.",
-    images: ["https://demo-blinks.vercel.app/donate-sol.jpg"],
+    images: [DONATE_IMAGE_URL],
   },
   other: {
-    "solana:action:apiUrl":
-      "https://demo-blinks.vercel.app/api/actions/donate-sol",
+    "solana:action:apiUrl": DONATE_ACTION_URL,
     "solana:action:type": "transaction",
     "solana:action:label": "Donate SOL",
-    "solana:action:icon":
-      "https://demo-blinks.vercel.app/donate-sol.jpg",
+    "solana:action:icon": DONATE_IMAGE_URL,
   },
 };
 

@@ -14,21 +14,22 @@ import {
   VersionedMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
+import {
+  DONATION_WALLET_ADDRESS,
+  SERVER_SOLANA_RPC_URL,
+  SOLANA_ACTION_VERSION,
+} from "@/lib/server-config";
 
 // CAIP-2 format for Solana Devnet
 const blockchain = BLOCKCHAIN_IDS.devnet;
 
-// Create a connection to the Solana devnet
-const connection = new Connection("https://api.devnet.solana.com");
-
-// Set the donation wallet address (Dummy valid key for testing)
-const donationWallet = "HS7M3zgnFVucMMM5k1a2sPBPjRndfYNW7Ep6eMueCvX4";
+const connection = new Connection(SERVER_SOLANA_RPC_URL);
 const MIN_BALANCE_BUFFER_LAMPORTS = 5_000;
 
 const headers = {
   ...ACTIONS_CORS_HEADERS,
   "x-blockchain-ids": blockchain,
-  "x-action-version": "2.4",
+  "x-action-version": SOLANA_ACTION_VERSION,
 };
 
 export const OPTIONS = async () => {
@@ -95,7 +96,7 @@ export const POST = async (req: Request) => {
       return new Response(JSON.stringify({ error: "Invalid account provided" }), { status: 400, headers });
     }
 
-    const receiver = new PublicKey(donationWallet);
+    const receiver = new PublicKey(DONATION_WALLET_ADDRESS);
     const transferLamports = Math.round(amount * LAMPORTS_PER_SOL);
     const { message, transaction } = await prepareTransaction(
       connection,

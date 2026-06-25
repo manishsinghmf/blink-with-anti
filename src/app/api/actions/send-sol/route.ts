@@ -14,15 +14,19 @@ import {
   VersionedMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
+import {
+  SERVER_SOLANA_RPC_URL,
+  SOLANA_ACTION_VERSION,
+} from "@/lib/server-config";
 
 const blockchain = BLOCKCHAIN_IDS.devnet;
-const connection = new Connection("https://api.devnet.solana.com");
+const connection = new Connection(SERVER_SOLANA_RPC_URL);
 const MIN_BALANCE_BUFFER_LAMPORTS = 5_000;
 
 const headers = {
   ...ACTIONS_CORS_HEADERS,
   "x-blockchain-ids": blockchain,
-  "x-action-version": "2.4",
+  "x-action-version": SOLANA_ACTION_VERSION,
 };
 
 export const OPTIONS = async () => {

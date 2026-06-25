@@ -15,10 +15,9 @@ import {
   WalletModalProvider,
   WalletMultiButton,
 } from "@solana/wallet-adapter-react-ui";
+import { APP_HOST, APP_URL, SOLANA_RPC_URL } from "@/lib/public-config";
 import "@dialectlabs/blinks/index.css";
 import "@solana/wallet-adapter-react-ui/styles.css";
-
-const RPC_URL = "https://api.devnet.solana.com";
 
 type BlinkMode = "donate" | "send";
 
@@ -42,7 +41,7 @@ const BLINK_CONFIG: Record<
 };
 
 function BlinkPreview({ actionUrl }: { actionUrl: string }) {
-  const { adapter } = useBlinkSolanaWalletAdapter(RPC_URL);
+  const { adapter } = useBlinkSolanaWalletAdapter(SOLANA_RPC_URL);
   const { blink } = useBlink({ url: actionUrl });
 
   if (!blink) {
@@ -58,7 +57,7 @@ function BlinkPreview({ actionUrl }: { actionUrl: string }) {
     <Blink
       blink={blink}
       adapter={adapter as BlinkAdapter}
-      websiteText="demo-blinks.vercel.app"
+      websiteText={APP_HOST}
       stylePreset="x-dark"
     />
   );
@@ -122,14 +121,14 @@ export default function Home() {
   const shareUrl =
     typeof window !== "undefined"
       ? `${window.location.origin}${current.sharePath}`
-      : `https://demo-blinks.vercel.app${current.sharePath}`;
+      : `${APP_URL}${current.sharePath}`;
   const actionUrl =
     typeof window !== "undefined"
       ? `${window.location.origin}${current.actionPath}`
-      : `http://localhost:3000${current.actionPath}`;
+      : `${APP_URL}${current.actionPath}`;
 
   return (
-    <ConnectionProvider endpoint={RPC_URL}>
+    <ConnectionProvider endpoint={SOLANA_RPC_URL}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
           <div style={styles.page}>

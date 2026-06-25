@@ -15,15 +15,17 @@ import {
   WalletModalProvider,
   WalletMultiButton,
 } from "@solana/wallet-adapter-react-ui";
+import {
+  APP_HOST,
+  DONATE_ACTION_URL,
+  SOLANA_RPC_URL,
+} from "@/lib/public-config";
 import "@dialectlabs/blinks/index.css";
 import "@solana/wallet-adapter-react-ui/styles.css";
 
-const ACTION_URL = "https://demo-blinks.vercel.app/api/actions/donate-sol";
-const RPC_URL = "https://api.devnet.solana.com";
-
 function BlinkCard() {
-  const { adapter } = useBlinkSolanaWalletAdapter(RPC_URL);
-  const { blink } = useBlink({ url: ACTION_URL });
+  const { adapter } = useBlinkSolanaWalletAdapter(SOLANA_RPC_URL);
+  const { blink } = useBlink({ url: DONATE_ACTION_URL });
 
   if (!blink) {
     return (
@@ -58,7 +60,7 @@ function BlinkCard() {
     <Blink
       blink={blink}
       adapter={adapter as BlinkAdapter}
-      websiteText="demo-blinks.vercel.app"
+      websiteText={APP_HOST}
       stylePreset="x-dark"
     />
   );
@@ -68,7 +70,7 @@ export default function DonatePage() {
   const wallets = useMemo(() => [], []);
 
   return (
-    <ConnectionProvider endpoint={RPC_URL}>
+    <ConnectionProvider endpoint={SOLANA_RPC_URL}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
           <div style={styles.page}>
