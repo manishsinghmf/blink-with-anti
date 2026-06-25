@@ -105,24 +105,6 @@ export default function DonatePage() {
                 </div>
               </div>
 
-              {/* Info */}
-              <div style={styles.info}>
-                <div style={styles.step}>
-                  <div style={styles.stepNumber}>1</div>
-                  <span>Connect your Solana wallet</span>
-                </div>
-                <div style={styles.divider} />
-                <div style={styles.step}>
-                  <div style={styles.stepNumber}>2</div>
-                  <span>Pick an amount (or enter custom)</span>
-                </div>
-                <div style={styles.divider} />
-                <div style={styles.step}>
-                  <div style={styles.stepNumber}>3</div>
-                  <span>Approve the transaction</span>
-                </div>
-              </div>
-
               <p style={styles.footer}>
                 Powered by{" "}
                 <a
