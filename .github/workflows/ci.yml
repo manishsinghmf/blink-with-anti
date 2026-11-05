@@ -30,3 +30,6 @@ jobs:
 
       - name: Run Application Build
         run: npm run build
+
+      - name: Simulate CI failure
+        run: exit 1
