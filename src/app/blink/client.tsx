@@ -75,7 +75,7 @@ function BlinkClientContent() {
       actionUrl = decodeURIComponent(encodedAction);
       console.log("[Blink Client] Decoded action URL:", actionUrl);
 
-      // If it has solana-action:// protocol, remove it
+      // If it has solana-action:// protocol, remove it 
       if (actionUrl.startsWith("solana-action://")) {
         actionUrl = actionUrl.replace("solana-action://", "");
         console.log("[Blink Client] Stripped protocol, URL:", actionUrl);
