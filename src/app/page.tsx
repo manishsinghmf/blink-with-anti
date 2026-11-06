@@ -147,7 +147,7 @@ export default function Home() {
                 <p style={styles.subtitle}>
                   Your donation blink is still live, and send SOL is now available as a second option.
                   <br />
-                  Users with the Chrome extension see it unfurl inline.
+                  Users with the Chrome extension see the unfurl URL inline.
                 </p>
               </div>
 
