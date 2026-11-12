@@ -1,0 +1,91 @@
+
+name: Deploy to AWS EC2
+
+on:
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types:
+      - completed
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy Next.js to EC2
+    runs-on: ubuntu-latest
+
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'master'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure production environment
+        env:
+          APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
+          RPC_URL: ${{ vars.NEXT_PUBLIC_SOLANA_RPC_URL }}
+          SERVER_RPC_URL: ${{ vars.SOLANA_RPC_URL }}
+          DONATION_WALLET: ${{ vars.DONATION_WALLET_ADDRESS }}
+          ACTION_VERSION: ${{ vars.SOLANA_ACTION_VERSION }}
+        run: |
+          cat > .env.production <<EOF
+          NEXT_PUBLIC_APP_URL=$APP_URL
+          NEXT_PUBLIC_SOLANA_RPC_URL=$RPC_URL
+          SOLANA_RPC_URL=$SERVER_RPC_URL
+          DONATION_WALLET_ADDRESS=$DONATION_WALLET
+          SOLANA_ACTION_VERSION=$ACTION_VERSION
+          EOF
+
+      - name: Build application
+        run: npm run build
+
+      - name: Configure SSH
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/ec2_key
+          chmod 600 ~/.ssh/ec2_key
+          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
+
+      - name: Deploy standalone build
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
+        run: |
+          tar czf - -C .next/standalone . | ssh -i ~/.ssh/ec2_key \
+            "$EC2_USERNAME@$EC2_HOST" \
+            "mkdir -p ~/blink-with-anti/.next/standalone && tar xzf - -C ~/blink-with-anti/.next/standalone"
+
+          tar czf - -C .next/static . | ssh -i ~/.ssh/ec2_key \
+            "$EC2_USERNAME@$EC2_HOST" \
+            "mkdir -p ~/blink-with-anti/.next/standalone/.next/static && tar xzf - -C ~/blink-with-anti/.next/standalone/.next/static"
+
+          tar czf - -C public . | ssh -i ~/.ssh/ec2_key \
+            "$EC2_USERNAME@$EC2_HOST" \
+            "mkdir -p ~/blink-with-anti/.next/standalone/public && tar xzf - -C ~/blink-with-anti/.next/standalone/public"
+
+      - name: Restart Next.js application
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
+        run: |
+          ssh -i ~/.ssh/ec2_key "$EC2_USERNAME@$EC2_HOST" \
+            "cd ~/blink-with-anti/.next/standalone && pm2 restart blink-nextjs && sleep 5 && curl -fsS http://localhost:3000/ > /dev/null"
