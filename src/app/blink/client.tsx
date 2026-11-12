@@ -17,6 +17,7 @@ import {
   WalletMultiButton,
 } from "@solana/wallet-adapter-react-ui";
 import { APP_HOST, SEND_ACTION_URL, SOLANA_RPC_URL } from "@/lib/public-config";
+import { resolveBlinkActionUrl } from "@/lib/blink-url";
 import "@dialectlabs/blinks/index.css";
 import "@solana/wallet-adapter-react-ui/styles.css";
 
@@ -63,27 +64,11 @@ function BlinkCard({ actionUrl }: { actionUrl: string }) {
   );
 }
 
+
 function BlinkClientContent() {
   const searchParams = useSearchParams();
   const encodedAction = searchParams.get("action");
-
-  let actionUrl = "";
-
-  if (encodedAction) {
-    try {
-      // Decode the action parameter
-      actionUrl = decodeURIComponent(encodedAction);
-      console.log("[Blink Client] Decoded action URL:", actionUrl);
-
-      // If it has solana-action:// protocol, remove it
-      if (actionUrl.startsWith("solana-action://")) {
-        actionUrl = actionUrl.replace("solana-action://", "");
-        console.log("[Blink Client] Stripped protocol, URL:", actionUrl);
-      }
-    } catch (error) {
-      console.error("[Blink Client] Error decoding action:", error);
-    }
-  }
+  const actionUrl = resolveBlinkActionUrl(encodedAction);
 
   if (!actionUrl) {
     return (
@@ -100,7 +85,17 @@ function BlinkClientContent() {
             <p style={{ color: "#a1a1aa", fontSize: "0.9rem", marginTop: "1rem" }}>
               Example:
               <br />
-              <code style={{ background: "#27272a", padding: "0.5rem", display: "block", marginTop: "0.5rem", borderRadius: "0.5rem", fontSize: "0.8rem", wordBreak: "break-all" }}>
+              <code
+                style={{
+                  background: "#27272a",
+                  padding: "0.5rem",
+                  display: "block",
+                  marginTop: "0.5rem",
+                  borderRadius: "0.5rem",
+                  fontSize: "0.8rem",
+                  wordBreak: "break-all",
+                }}
+              >
                 {`/blink?action=${encodeURIComponent(`solana-action://${SEND_ACTION_URL}`)}`}
               </code>
             </p>
@@ -110,17 +105,17 @@ function BlinkClientContent() {
     );
   }
 
+  console.log("[Blink Client] Resolved action URL:", actionUrl);
+
   return (
     <ConnectionProvider endpoint={SOLANA_RPC_URL}>
       <WalletProvider wallets={[]} autoConnect>
         <WalletModalProvider>
           <div style={styles.page}>
-            {/* Background gradient orbs */}
             <div style={styles.orbTopRight} />
             <div style={styles.orbBottomLeft} />
 
             <main style={styles.main}>
-              {/* Header */}
               <div style={styles.header}>
                 <div style={styles.badge}>
                   <span style={styles.badgeDot} />
@@ -132,20 +127,18 @@ function BlinkClientContent() {
                 </p>
               </div>
 
-              {/* Wallet button */}
               <div style={styles.walletRow}>
                 <WalletMultiButton />
               </div>
 
-              {/* Blink Card */}
               <div style={styles.cardWrapper}>
                 <BlinkCard actionUrl={actionUrl} />
               </div>
 
-              {/* Footer */}
               <div style={styles.footer}>
                 <p style={{ fontSize: "0.85rem", color: "#71717a" }}>
-                  Action URL: <code style={{ fontSize: "0.75rem" }}>{actionUrl}</code>
+                  Action URL:{" "}
+                  <code style={{ fontSize: "0.75rem" }}>{actionUrl}</code>
                 </p>
               </div>
             </main>
@@ -158,15 +151,19 @@ function BlinkClientContent() {
 
 function BlinkClientPageWithSuspense() {
   return (
-    <Suspense fallback={
-      <div style={styles.page}>
-        <div style={styles.orbTopRight} />
-        <div style={styles.orbBottomLeft} />
-        <main style={styles.main}>
-          <p style={{ textAlign: "center", color: "#a1a1aa" }}>Loading...</p>
-        </main>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div style={styles.page}>
+          <div style={styles.orbTopRight} />
+          <div style={styles.orbBottomLeft} />
+          <main style={styles.main}>
+            <p style={{ textAlign: "center", color: "#a1a1aa" }}>
+              Loading...
+            </p>
+          </main>
+        </div>
+      }
+    >
       <BlinkClientContent />
     </Suspense>
   );
