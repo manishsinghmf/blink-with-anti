@@ -88,4 +88,4 @@ jobs:
           EC2_USERNAME: ${{ secrets.EC2_USERNAME }}
         run: |
           ssh -i ~/.ssh/ec2_key "$EC2_USERNAME@$EC2_HOST" \
-            "cd ~/blink-with-anti/.next/standalone && pm2 restart blink-nextjs && sleep 5 && curl -fsS http://localhost:3000/ > /dev/null"
+            "cd ~/blink-with-anti/.next/standalone && PORT=3000 HOSTNAME=0.0.0.0 /home/ubuntu/.nvm/versions/node/v24.22.2/bin/pm2 restart blink-nextjs --update-env && sleep 5 && curl -fsS http://localhost:3000/ > /dev/null"
