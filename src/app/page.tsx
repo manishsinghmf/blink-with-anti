@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useMemo, useState } from "react";
@@ -46,9 +47,29 @@ function BlinkPreview({ actionUrl }: { actionUrl: string }) {
 
   if (!blink) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "3rem", gap: "1rem" }}>
-        <div style={{ width: 40, height: 40, border: "3px solid transparent", borderTopColor: "#a78bfa", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-        <p style={{ color: "#a1a1aa", fontSize: "0.9rem" }}>Loading Blink…</p>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "3rem",
+          gap: "1rem",
+        }}
+      >
+        <div
+          style={{
+            width: 40,
+            height: 40,
+            border: "3px solid transparent",
+            borderTopColor: "#a78bfa",
+            borderRadius: "50%",
+            animation: "spin 0.8s linear infinite",
+          }}
+        />
+        <p style={{ color: "#a1a1aa", fontSize: "0.9rem" }}>
+          Loading Blink…
+        </p>
       </div>
     );
   }
@@ -66,11 +87,41 @@ function BlinkPreview({ actionUrl }: { actionUrl: string }) {
 function CopyButton({ shareUrl }: { shareUrl: string }) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(shareUrl).then(() => {
+  const handleCopy = async () => {
+    try {
+      // Use the Clipboard API when available (HTTPS and localhost).
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+      } else {
+        // Fallback for HTTP environments.
+        const textarea = document.createElement("textarea");
+
+        textarea.value = shareUrl;
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+        textarea.setAttribute("readonly", "");
+
+        document.body.appendChild(textarea);
+
+        try {
+          textarea.select();
+          textarea.setSelectionRange(0, textarea.value.length);
+
+          const successful = document.execCommand("copy");
+
+          if (!successful) {
+            throw new Error("Clipboard copy failed");
+          }
+        } finally {
+          textarea.remove();
+        }
+      }
+
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy URL:", error);
+    }
   };
 
   return (
@@ -97,15 +148,34 @@ function CopyButton({ shareUrl }: { shareUrl: string }) {
       {copied ? (
         <>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M3 8.5L6.5 12L13 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M3 8.5L6.5 12L13 4"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
           Copied!
         </>
       ) : (
         <>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-            <path d="M3 11V3.5C3 2.67 3.67 2 4.5 2H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <rect
+              x="5"
+              y="5"
+              width="9"
+              height="9"
+              rx="1.5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M3 11V3.5C3 2.67 3.67 2 4.5 2H11"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
           </svg>
           Copy Blink URL
         </>
@@ -118,14 +188,10 @@ export default function Home() {
   const wallets = useMemo(() => [], []);
   const [mode, setMode] = useState<BlinkMode>("donate");
   const current = BLINK_CONFIG[mode];
-  const shareUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}${current.sharePath}`
-      : `${APP_URL}${current.sharePath}`;
-  const actionUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}${current.actionPath}`
-      : `${APP_URL}${current.actionPath}`;
+
+  // Use the same configured URL during server rendering and client rendering.
+  const shareUrl = `${APP_URL}${current.sharePath}`;
+  const actionUrl = `${APP_URL}${current.actionPath}`;
 
   return (
     <ConnectionProvider endpoint={SOLANA_RPC_URL}>
@@ -145,7 +211,8 @@ export default function Home() {
                   <span style={styles.titleAccent}>Workspace</span>
                 </h1>
                 <p style={styles.subtitle}>
-                  Your donation blink is still live, and send SOL is now available as a second option.
+                  Your donation blink is still live, and send SOL is now
+                  available as a second option.
                   <br />
                   Users with the Chrome extension see the unfurl URL inline.
                 </p>
@@ -156,16 +223,20 @@ export default function Home() {
                 {/* Left: Share card */}
                 <div style={styles.panel}>
                   <h2 style={styles.panelTitle}>📤 Share Your Blink</h2>
+
                   <div style={styles.modeRow}>
                     <button
                       onClick={() => setMode("donate")}
                       style={{
                         ...styles.modeButton,
-                        ...(mode === "donate" ? styles.modeButtonActive : {}),
+                        ...(mode === "donate"
+                          ? styles.modeButtonActive
+                          : {}),
                       }}
                     >
                       Donate SOL
                     </button>
+
                     <button
                       onClick={() => setMode("send")}
                       style={{
@@ -176,10 +247,13 @@ export default function Home() {
                       Send SOL
                     </button>
                   </div>
+
                   <div style={styles.urlBox}>
                     <code style={styles.urlCode}>{shareUrl}</code>
                   </div>
+
                   <CopyButton shareUrl={shareUrl} />
+
                   <p style={styles.panelDesc}>
                     Share this URL on any platform. {current.description}
                   </p>
@@ -187,18 +261,34 @@ export default function Home() {
                   <div style={styles.divider} />
 
                   <h3 style={styles.panelSubtitle}>🧩 Chrome Extension</h3>
+
                   <p style={styles.panelDesc}>
-                    For X.com unfurling, install the custom Chrome extension from the{" "}
-                    <code style={styles.inlineCode}>chrome-extension/</code> directory:
+                    For X.com unfurling, install the custom Chrome extension
+                    from the{" "}
+                    <code style={styles.inlineCode}>chrome-extension/</code>{" "}
+                    directory:
                   </p>
+
                   <ol style={styles.instructionList}>
                     <li>
-                      <code style={styles.inlineCode}>cd chrome-extension && npm install && npm run build</code>
+                      <code style={styles.inlineCode}>
+                        cd chrome-extension && npm install && npm run build
+                      </code>
                     </li>
                     <li>
-                      Open <code style={styles.inlineCode}>chrome://extensions</code> → Enable Developer Mode
+                      Open{" "}
+                      <code style={styles.inlineCode}>
+                        chrome://extensions
+                      </code>{" "}
+                      → Enable Developer Mode
                     </li>
-                    <li>Click &quot;Load unpacked&quot; → Select the <code style={styles.inlineCode}>chrome-extension/dist</code> folder</li>
+                    <li>
+                      Click &quot;Load unpacked&quot; → Select the{" "}
+                      <code style={styles.inlineCode}>
+                        chrome-extension/dist
+                      </code>{" "}
+                      folder
+                    </li>
                     <li>
                       Post the Blink URL on X.com → it auto-unfurls! 🎉
                     </li>
@@ -208,9 +298,17 @@ export default function Home() {
                 {/* Right: Live preview */}
                 <div style={styles.panel}>
                   <h2 style={styles.panelTitle}>⚡ Live Preview</h2>
-                  <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      marginBottom: "1rem",
+                    }}
+                  >
                     <WalletMultiButton />
                   </div>
+
                   <div style={styles.blinkWrapper}>
                     <div style={styles.blinkGlow} />
                     <div style={styles.blinkCard}>
@@ -253,7 +351,8 @@ const styles: Record<string, React.CSSProperties> = {
     padding: "3rem 1.5rem",
     position: "relative",
     overflow: "hidden",
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    fontFamily:
+      "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   orbPurple: {
     position: "absolute",
@@ -262,7 +361,8 @@ const styles: Record<string, React.CSSProperties> = {
     width: 600,
     height: 600,
     borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 70%)",
+    background:
+      "radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 70%)",
     pointerEvents: "none",
   },
   orbGreen: {
@@ -272,7 +372,8 @@ const styles: Record<string, React.CSSProperties> = {
     width: 500,
     height: 500,
     borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(52,211,153,0.08) 0%, transparent 70%)",
+    background:
+      "radial-gradient(circle, rgba(52,211,153,0.08) 0%, transparent 70%)",
     pointerEvents: "none",
   },
   main: {
