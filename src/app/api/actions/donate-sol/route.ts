@@ -19,6 +19,7 @@ import {
   SERVER_SOLANA_RPC_URL,
   SOLANA_ACTION_VERSION,
 } from "@/lib/server-config";
+import { DONATE_IMAGE_URL } from "@/lib/public-config";
 
 // CAIP-2 format for Solana Devnet
 const blockchain = BLOCKCHAIN_IDS.devnet;
@@ -39,7 +40,7 @@ export const OPTIONS = async () => {
 export const GET = async (req: Request) => {
   const response: ActionGetResponse = {
     type: "action",
-    icon: `${new URL("/donate-sol.jpg", req.url).toString()}`,
+    icon: DONATE_IMAGE_URL,
     label: "Donate",
     title: "Donate SOL",
     description: "Support this project with a quick SOL donation. One click, instant transfer on Solana. Every bit helps! 🚀",
